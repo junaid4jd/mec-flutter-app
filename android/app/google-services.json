@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "160604092231",
+    "project_id": "mec-flutter-app",
+    "storage_bucket": "mec-flutter-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:160604092231:android:96de850bbd4465b935be62",
+        "android_client_info": {
+          "package_name": "com.mec.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "160604092231-0voefehitajp808d3edc3eer1idfs6c4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaimKoJRMFMAbUhbc7vwkOzCrYkt2AK4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "160604092231-0voefehitajp808d3edc3eer1idfs6c4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
