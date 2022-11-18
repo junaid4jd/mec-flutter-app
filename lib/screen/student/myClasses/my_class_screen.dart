@@ -132,7 +132,12 @@ class _StudentClassScreenState extends State<StudentClassScreen> {
               color: primaryColor,
             ));
           }
-          else if (snapshot.hasData) {
+          else if(snapshot.hasData && snapshot.data!.docs.isEmpty) {
+            // got data from snapshot but it is empty
+
+            return Center(child: Text("No Data Found"));
+          }
+          else {
             // this else if means you have enrolled below list of classes.
             return Center(
               child: Container(
@@ -217,13 +222,7 @@ class _StudentClassScreenState extends State<StudentClassScreen> {
             );
           }
 
-          else {   // this else means you do not have any enrolled class yet.
-            return Center(
-              child: Text(
-                'No Data Found...',style: TextStyle(color: Colors.black),
-              ),
-            );
-          }
+
         },
       ),
 

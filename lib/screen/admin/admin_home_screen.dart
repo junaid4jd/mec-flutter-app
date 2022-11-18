@@ -108,11 +108,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return Center(
-                child: Text(
-                  'No Data Found...',
-                ),
+                child: CircularProgressIndicator(),
               );
-            } else {
+            }
+            else if(snapshot.hasData && snapshot.data!.docs.isEmpty) {
+              // got data from snapshot but it is empty
+
+              return Center(child: Text("No Data Found"));
+            }
+
+
+            else {
               return ListView.builder(
                 itemCount: snapshot.data!.docs.length,
                 itemBuilder: (context, index) {

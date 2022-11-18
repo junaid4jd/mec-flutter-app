@@ -1,13 +1,19 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mec/constants.dart';
+import 'package:mec/model/teacher_class_model.dart';
 import 'package:mec/screen/teacher/surahs/chapter_surahs_list_screen_teacher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChapterList extends StatefulWidget {
   final String classCode;
-  const ChapterList({Key? key, required this.classCode}) : super(key: key);
+  final String classDocId;
+  const ChapterList({Key? key, required this.classCode, required this.classDocId}) : super(key: key);
 
   @override
   _ChapterListState createState() => _ChapterListState();
@@ -15,6 +21,8 @@ class ChapterList extends StatefulWidget {
 
 class _ChapterListState extends State<ChapterList> {
   List<Map<String, dynamic>> chapterList = [];
+  TeacherClasseModel? teacherClasseModel;
+  bool chapter1 = false;
 
   int y=0;
   List<bool> toggleVal = [false, false];
@@ -62,6 +70,25 @@ class _ChapterListState extends State<ChapterList> {
   }
 
 
+  getData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    FirebaseFirestore.instance.collection('Classes').doc(widget.classDocId.toString()).get().then((value) {
+      print(' This is the class data you picked');
+      var data = json.encode(value.data());
+      setState(() {
+      teacherClasseModel  =  TeacherClasseModel.fromJson(json.decode(data));
+      });
+      print('Teacher Name');
+      print(teacherClasseModel!.teacherName.toString());
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getData();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
 
@@ -83,24 +110,17 @@ class _ChapterListState extends State<ChapterList> {
               color: primaryColor,
             ));
           }
-          else if (snapshot.hasData) {
-            //print(snapshot.data!.docs[0]["chapList"].toString());
-            //chapterList = snapshot.data!.docs[0]["chapList"];
-
-            // for(int i=0;i<snapshot.data!.docs[0]["chapList"].length;i++) {
-            //  // setState(() {
-            //     toggleVal[i] = false;
-            //  // });
-            // }
-
-            //print(chapterList.toString());
+          else if(snapshot.hasData && snapshot.data!.docs.isEmpty) {
+            // got data from snapshot but it is empty
+            return Center(child: Text("No Data Found"));
+          }
+          else  {
 
             return
 
               Center(
               child: Container(
                 width: size.width*0.95,
-
                 child: ListView.builder(
                   itemCount: snapshot.data!.docs[0]["chapList"].length,
                   itemBuilder: (context, index) {
@@ -108,14 +128,26 @@ class _ChapterListState extends State<ChapterList> {
                     return GestureDetector(
                       onTap: () {
 
-                        if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true)
+                        FirebaseFirestore.instance.collection('Classes').doc(widget.classDocId.toString()).get().then((value) {
+                          print(' This is the class data you picked');
+
+                          var data = json.encode(value.data());
+
+                          setState(() {
+                            teacherClasseModel  =  TeacherClasseModel.fromJson(json.decode(data));
+                          });
+
+                          if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true)
                           {
                             Navigator.push(
                               context,
                               PageRouteBuilder(
                                 pageBuilder: (c, a1, a2) =>
                                     TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
-                                    chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                      chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                      teacherClasseModel: teacherClasseModel!,
+                                      classDocId: widget.classDocId.toString(),
+                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
                                     ),
                                 transitionsBuilder: (c, anim, a2, child) =>
                                     FadeTransition(opacity: anim, child: child),
@@ -123,60 +155,71 @@ class _ChapterListState extends State<ChapterList> {
                               ),
                             );
                           }
-                        else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true)
-                        {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (c, a1, a2) =>
-                                  TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
-                                    chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
-                                  ),
-                              transitionsBuilder: (c, anim, a2, child) =>
-                                  FadeTransition(opacity: anim, child: child),
-                              transitionDuration: Duration(milliseconds: 0),
-                            ),
-                          );
-                        }
-                        else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true)
-                        {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (c, a1, a2) =>
-                                  TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
-                                    chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
-                                  ),
-                              transitionsBuilder: (c, anim, a2, child) =>
-                                  FadeTransition(opacity: anim, child: child),
-                              transitionDuration: Duration(milliseconds: 0),
-                            ),
-                          );
-                        }
-                        else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true)
-                        {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (c, a1, a2) =>
-                                  TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
-                                    chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
-                                  ),
-                              transitionsBuilder: (c, anim, a2, child) =>
-                                  FadeTransition(opacity: anim, child: child),
-                              transitionDuration: Duration(milliseconds: 0),
-                            ),
-                          );
-                        }
-                        else {
-                          print("chap ${index+1} is locked");
-                          Fluttertoast.showToast(
-                            msg: "Sorry locked by teacher",
-                            toastLength: Toast.LENGTH_SHORT,
-                            fontSize: 18.0,
-                          );
-                        }
+                          else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true)
+                          {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (c, a1, a2) =>
+                                    TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                      chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                      teacherClasseModel: teacherClasseModel!,
+                                      classDocId: widget.classDocId.toString(),
+                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                    ),
+                                transitionsBuilder: (c, anim, a2, child) =>
+                                    FadeTransition(opacity: anim, child: child),
+                                transitionDuration: Duration(milliseconds: 0),
+                              ),
+                            );
+                          }
+                          else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true)
+                          {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (c, a1, a2) =>
+                                    TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                      chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                      teacherClasseModel: teacherClasseModel!,
+                                      classDocId: widget.classDocId.toString(),
+                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                    ),
+                                transitionsBuilder: (c, anim, a2, child) =>
+                                    FadeTransition(opacity: anim, child: child),
+                                transitionDuration: Duration(milliseconds: 0),
+                              ),
+                            );
+                          }
+                          else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true)
+                          {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (c, a1, a2) =>
+                                    TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                      chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                      teacherClasseModel: teacherClasseModel!,
+                                      classDocId: widget.classDocId.toString(),
+                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                    ),
+                                transitionsBuilder: (c, anim, a2, child) =>
+                                    FadeTransition(opacity: anim, child: child),
+                                transitionDuration: Duration(milliseconds: 0),
+                              ),
+                            );
+                          }
+                          else
+                          {
+                            print("chap ${index+1} is locked");
+                            Fluttertoast.showToast(
+                              msg: "Sorry locked by teacher",
+                              toastLength: Toast.LENGTH_SHORT,
+                              fontSize: 18.0,
+                            );
+                          }
 
+                        });
 
 
 
@@ -188,7 +231,6 @@ class _ChapterListState extends State<ChapterList> {
                             width: size.width*0.95,
                             decoration: BoxDecoration(
                               color:
-
                               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.white :
                               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.white :
                               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.white :
@@ -263,7 +305,7 @@ class _ChapterListState extends State<ChapterList> {
                                           "chapterToggle4": val,
                                         });
                                       }
-
+// This is the class data you picked student
                                       // setState(() {
                                       //   toggleVal[index] = val;
                                       // });
@@ -309,13 +351,7 @@ class _ChapterListState extends State<ChapterList> {
             );
           }
 
-          else {
-            return Center(
-              child: Text(
-                'No Data Found...',style: TextStyle(color: Colors.black),
-              ),
-            );
-          }
+
         },
       ),
 

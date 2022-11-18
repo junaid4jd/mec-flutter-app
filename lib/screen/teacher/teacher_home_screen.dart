@@ -7,7 +7,8 @@ import 'package:mec/screen/teacher/student/student_screen_teacher.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   final String userType;
-  const TeacherHomeScreen({Key? key, required this.userType}) : super(key: key);
+  final String email;
+  const TeacherHomeScreen({Key? key, required this.userType, required this.email}) : super(key: key);
 
   @override
   State<TeacherHomeScreen> createState() => _TeacherHomeScreenState();
@@ -17,7 +18,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
 
   int _selectedIndex = 0;
   List<Widget> _pages = [
-    ClassesScreen(),
+    ClassesScreen(email: "",),
     StudentScreenTeacher(surahName: "",surahAyhs: "",way: ""),
     TeacherProfileScreen(),
   ];
@@ -27,6 +28,20 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       _selectedIndex = index;
     });
   }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    setState(() {
+      _pages = [
+        ClassesScreen(email: widget.email,),
+        StudentScreenTeacher(surahName: "",surahAyhs: "",way: ""),
+        TeacherProfileScreen(),
+      ];
+    });
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +74,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                       onTap: () {
                         setState(() {
                           _selectedIndex = 0;
-                          _pages[0] = ClassesScreen();
+                          _pages[0] = ClassesScreen(email: widget.email,);
                         });
                       },
                       child: Icon(
@@ -81,7 +96,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                           onTap: () {
                             setState(() {
                               _selectedIndex = 0;
-                              _pages[0] = ClassesScreen();
+                              _pages[0] = ClassesScreen(email: widget.email,);
                             });
                           },
                           child: Icon(

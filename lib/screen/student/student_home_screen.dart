@@ -5,6 +5,7 @@ import 'package:mec/screen/student/addClass/chap_in_class_screen.dart';
 import 'package:mec/screen/student/myClasses/my_class_screen.dart';
 import 'package:mec/screen/student/practices/student_practice_screen.dart';
 import 'package:mec/screen/student/profile/my_profile_screen.dart';
+import 'package:mec/screen/student/studentSurah/student_surahs_screen.dart';
 
 
 class StudentHomeScreen extends StatefulWidget {
@@ -40,7 +41,13 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         _pages[0] = StudentClassChapScreen(classCode: widget.classCode.toString(),);
       });
     }
-    if (widget.index == 5) {
+    else if (widget.index == 6) {
+      setState(() {
+        _selectedIndex = 0;
+        _pages[0] = StudentSurahScreen(classCode: widget.classCode,);
+      });
+    }
+    else if (widget.index == 5) {
       setState(() {
         _selectedIndex = 2;
         _pages[2] = StudentProfileScreen();

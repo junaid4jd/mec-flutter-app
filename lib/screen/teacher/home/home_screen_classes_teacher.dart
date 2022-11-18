@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +8,12 @@ import 'package:mec/constants.dart';
 import 'package:mec/screen/authentication/userType/usertype_screen.dart';
 import 'package:mec/screen/chapter/chapter_list.dart';
 import 'package:mec/screen/teacher/addClass/addClass_screen.dart';
+import 'package:quran/quran.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ClassesScreen extends StatefulWidget {
-  const ClassesScreen({Key? key}) : super(key: key);
+  final String email;
+  const ClassesScreen({Key? key, required this.email}) : super(key: key);
 
   @override
   _ClassesScreenState createState() => _ClassesScreenState();
@@ -24,8 +28,19 @@ class _ClassesScreenState extends State<ClassesScreen> {
   void initState() {
     // TODO: implement initState
     getData();
+    getSurahName1();
     super.initState();
   }
+
+  getSurahName1() {
+    print(getSurahName(112) + ' This is the surah name');
+    print(getSurahNameArabic(112) + ' This is the surah name');
+    print(getVerseCount(112).toString() + ' This is the surah name');
+    // getSurahName(18);
+  }
+
+
+
 
   getData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -38,6 +53,16 @@ class _ClassesScreenState extends State<ClassesScreen> {
       });
 
     });
+
+    FirebaseFirestore.instance.collection('content').doc('chap1').get().then((value) {
+      print('content get');
+      var data = jsonEncode(value.data());
+      print(data.toString());
+
+
+    });
+
+
   }
   @override
   Widget build(BuildContext context) {
@@ -117,7 +142,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (c, a1, a2) => AddClassScreen(),
+              pageBuilder: (c, a1, a2) => AddClassScreen(email: widget.email,),
               transitionsBuilder: (c, anim, a2, child) =>
                   FadeTransition(opacity: anim, child: child),
               transitionDuration: Duration(milliseconds: 0),
@@ -126,7 +151,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
         },
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection("Classes").snapshots(),
+        stream: FirebaseFirestore.instance.collection("Classes").where("teacherEmail", isEqualTo:  widget.email).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator(
@@ -134,7 +159,12 @@ class _ClassesScreenState extends State<ClassesScreen> {
               color: primaryColor,
             ));
           }
-     else if (snapshot.hasData) {
+          else if(snapshot.hasData && snapshot.data!.docs.isEmpty) {
+            // got data from snapshot but it is empty
+
+            return Center(child: Text("No Data Found"));
+          }
+     else {
        return Center(
          child: Container(
            width: size.width*0.95,
@@ -149,7 +179,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                      context,
                      PageRouteBuilder(
                        pageBuilder: (c, a1, a2) =>
-                     ChapterList(classCode: ds['classCode'].toString()),
+                     ChapterList(classCode: ds['classCode'].toString(), classDocId: ds.id.toString(),),
                        transitionsBuilder: (c, anim, a2, child) =>
                            FadeTransition(opacity: anim, child: child),
                        transitionDuration: Duration(milliseconds: 0),
@@ -218,13 +248,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
        );
           }
 
-          else {
-            return Center(
-              child: Text(
-                'No Data Found...',style: TextStyle(color: Colors.black),
-              ),
-            );
-          }
+
         },
       ),
     );

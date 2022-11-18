@@ -13,6 +13,7 @@ class StudentClassChapScreen extends StatefulWidget {
 }
 
 class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
+
   int cups = 0, badge = 0, stars = 0;
   ScrollController? controller;
   bool isAppBarPinned = false;
@@ -138,7 +139,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       height: 15,
                                       child: Center(
                                           child: Text(
-                                        '10',
+                                        '0',
                                         style: TextStyle(fontSize: 10),
                                       )),
                                     ),
@@ -169,7 +170,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       height: 15,
                                       child: Center(
                                           child: Text(
-                                        '10',
+                                        '0',
                                         style: TextStyle(fontSize: 10),
                                       )),
                                     ),
@@ -199,7 +200,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       height: 15,
                                       child: Center(
                                           child: Text(
-                                        '10',
+                                        '0',
                                         style: TextStyle(fontSize: 10),
                                       )),
                                     ),
@@ -262,7 +263,12 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                 color: primaryColor,
               ));
             }
-            else if (snapshot.hasData) {
+            else if(snapshot.hasData && snapshot.data!.docs.isEmpty) {
+              // got data from snapshot but it is empty
+
+              return Center(child: Text("No Data Found"));
+            }
+            else  {
 
               return Center(
                 child: Container(
@@ -273,268 +279,274 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                     itemCount: snapshot.data!.docs[0]["chapList"].length,
                     itemBuilder: (context, index) {
                       // DocumentSnapshot ds = snapshot.data!.docs[0]["chapList"][index];
-                      return Padding(
-                        padding: const EdgeInsets.all(1.0),
-                        child: Center(
-                          child: Container(
-                            // color: redColor,
-                            height: size.height*0.38,
-                            // decoration: BoxDecoration(
-                            //   border: Border.all(color: greyColor,width: 1)
-                            // ),
-                            child: Stack(
-                              alignment: Alignment.topCenter,
-                              children: [
+                      return GestureDetector(
+                        onTap: (){
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (c, a1, a2) =>
+                                  StudentHomeScreen(userType: 'Student',
+                                    classCode: widget.classCode.toString(),index: 6 ,),
+                              transitionsBuilder: (c, anim, a2, child) =>
+                                  FadeTransition(opacity: anim, child: child),
+                              transitionDuration: Duration(milliseconds: 0),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(1.0),
+                          child: Center(
+                            child: Container(
+                              // color: redColor,
+                              height: size.height*0.38,
+                              child: Stack(
+                                alignment: Alignment.topCenter,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      width: 100.0,
+                                      height: 100.0,
+                                      decoration: new BoxDecoration(
 
-
-
-
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(
-                                    width: 100.0,
-                                    height: 100.0,
-                                    decoration: new BoxDecoration(
-
-                                      border: Border.all(color:
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? primaryColor :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? primaryColor :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? primaryColor :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? primaryColor :
-                                      Colors.grey.withOpacity(0.5),
-                                          width: 5
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
-                                          style: TextStyle(fontSize: 16,color: Colors.blue, fontWeight: FontWeight.bold),
+                                        border: Border.all(color:
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? primaryColor :
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? primaryColor :
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? primaryColor :
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? primaryColor :
+                                        Colors.grey.withOpacity(0.5),
+                                            width: 5
                                         ),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                            style: TextStyle(fontSize: 16,color: Colors.blue, fontWeight: FontWeight.bold),
+                                          ),
 
-                                        Icon(Icons.play_arrow_sharp,
-                                          color:
-                                          snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? primaryColor :
-                                          snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? primaryColor :
-                                          snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? primaryColor :
-                                          snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? primaryColor :
-                                          Colors.grey.withOpacity(0.9),
-                                          size: 28,
+                                          Icon(Icons.play_arrow_sharp,
+                                            color:
+                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? primaryColor :
+                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? primaryColor :
+                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? primaryColor :
+                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? primaryColor :
+                                            Colors.grey.withOpacity(0.9),
+                                            size: 28,
 
 
-                                        )
+                                          )
 
-                                      ],
-                                    )),
+                                        ],
+                                      )),
+                                    ),
                                   ),
-                                ),
+                                  Positioned.fill(
 
-                                Positioned.fill(
+                                    bottom: size.height*0.12,
+                                    child: Align(
+                                      alignment: Alignment.center,
+                                      child:  Icon(Icons.star,
+                                        color:
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                        Colors.grey.withOpacity(0.9),
 
-                                  bottom: size.height*0.12,
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child:  Icon(Icons.star,
-                                      color:
+                                        size: 40,),
+                                    ),
+                                  ),
+                                  Positioned.fill(
+
+                                    bottom: size.height*0.16,
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child:  Icon(Icons.star,color:
+
                                       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
                                       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
                                       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
                                       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
                                       Colors.grey.withOpacity(0.9),
 
-                                      size: 40,),
+
+                                        size: 40,),
+                                    ),
                                   ),
-                                ),
-                                Positioned.fill(
+                                  Positioned.fill(
 
-                                  bottom: size.height*0.16,
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child:  Icon(Icons.star,color:
+                                    bottom: size.height*0.16,
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child:  Icon(Icons.star,color:
 
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                    Colors.grey.withOpacity(0.9),
+                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                      Colors.grey.withOpacity(0.9),
 
-
-                                      size: 40,),
+                                        size: 40,),
+                                    ),
                                   ),
-                                ),
-                                Positioned.fill(
+                                  Positioned.fill(
 
-                                  bottom: size.height*0.16,
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child:  Icon(Icons.star,color:
+                                    top: size.height*0.13,
+                                    child: Align(
+                                        alignment: Alignment.center,
+                                        child:  Container(
+                                          // color: greyColor,
+                                          height: size.height*0.22,
+                                          child: Column(children: [
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                                Colors.grey.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                                Colors.grey.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                                Colors.grey.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 70,
+                                              height: 70,
+                                              // decoration: BoxDecoration(
+                                              //     shape: BoxShape.circle,
+                                              //     color: Colors.amber
+                                              // ),
+                                              child:
+                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Image.asset('assets/images/trophy.png') :
+                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Image.asset('assets/images/trophy.png'):
+                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Image.asset('assets/images/trophy.png') :
+                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Image.asset('assets/images/trophy.png') :
+                                              Image.asset('assets/images/trophy_black.png'),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
 
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                    snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                    Colors.grey.withOpacity(0.9),
-
-                                      size: 40,),
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                                Colors.grey.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                                Colors.grey.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color:
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                                snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                                Colors.grey.withOpacity(0.9),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 5,
+                                            ),
+                                          ],),
+                                        )
+                                    ),
                                   ),
-                                ),
-                                Positioned.fill(
 
-                                  top: size.height*0.13,
-                                  child: Align(
-                                      alignment: Alignment.center,
-                                      child:  Container(
-                                        // color: greyColor,
-                                        height: size.height*0.22,
-                                        child: Column(children: [
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color:
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                              Colors.grey.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color:
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                              Colors.grey.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color:
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                              Colors.grey.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 70,
-                                            height: 70,
-                                            // decoration: BoxDecoration(
-                                            //     shape: BoxShape.circle,
-                                            //     color: Colors.amber
-                                            // ),
-                                            child:
-                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Image.asset('assets/images/trophy.png') :
-                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Image.asset('assets/images/trophy.png'):
-                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Image.asset('assets/images/trophy.png') :
-                                            snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Image.asset('assets/images/trophy.png') :
-                                            Image.asset('assets/images/trophy_black.png'),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color:
+                                  // Container(
+                                  //   height: size.height*0.3,
+                                  //   color: greyColor,
+                                  //   child: Column(
+                                  //     // mainAxisAlignment: MainAxisAlignment.center,
+                                  //     children: [
+                                  //
+                                  //       // Positioned(
+                                  //       //     //top: 20,
+                                  //       //     bottom: 20,
+                                  //       //     child: Icon(Icons.star,color: Colors.amber,size: 40,)),
+                                  //       // Row(
+                                  //       //   mainAxisAlignment: MainAxisAlignment.center,
+                                  //       //   children: [
+                                  //       //     Icon(Icons.star,color: Colors.amber,size: 40,),
+                                  //       //
+                                  //       //     Icon(Icons.star,color: Colors.amber,size: 40,),
+                                  //       //
+                                  //       //   ],),
+                                  //
+                                  //     ],),
+                                  // ),
 
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                              Colors.grey.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color:
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                              Colors.grey.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color:
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                              snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                              Colors.grey.withOpacity(0.9),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                        ],),
-                                      )
-                                  ),
-                                ),
-
-
-                                // Container(
-                                //   height: size.height*0.3,
-                                //   color: greyColor,
-                                //   child: Column(
-                                //     // mainAxisAlignment: MainAxisAlignment.center,
-                                //     children: [
-                                //
-                                //       // Positioned(
-                                //       //     //top: 20,
-                                //       //     bottom: 20,
-                                //       //     child: Icon(Icons.star,color: Colors.amber,size: 40,)),
-                                //       // Row(
-                                //       //   mainAxisAlignment: MainAxisAlignment.center,
-                                //       //   children: [
-                                //       //     Icon(Icons.star,color: Colors.amber,size: 40,),
-                                //       //
-                                //       //     Icon(Icons.star,color: Colors.amber,size: 40,),
-                                //       //
-                                //       //   ],),
-                                //
-                                //     ],),
-                                // ),
-
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -671,13 +683,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
               );
             }
 
-            else {
-              return Center(
-                child: Text(
-                  'No Data Found...',style: TextStyle(color: Colors.black),
-                ),
-              );
-            }
+
           },
         ),
       ),

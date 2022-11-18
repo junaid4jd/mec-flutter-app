@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mec/constants.dart';
+import 'package:mec/screen/student/leatherBoard/leather_board_screen.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../authentication/userType/usertype_screen.dart';
@@ -12,6 +15,7 @@ class StudentProfileScreen extends StatefulWidget {
 }
 
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
+
   String name = '' , email = '';
   String text = '';
   String subject = '';
@@ -32,12 +36,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         email = value.data()!['email'].toString();
         name = value.data()!['name'].toString();
       });
-
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
 
@@ -102,11 +106,197 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         ),
       ),
       body: Center(
-        child: Container(
-          child: Text("My Profile"),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+         // crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: size.height*0.045,),
+            CircleAvatar(
+              radius: 50,
+              backgroundImage: NetworkImage(
+                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNDgyaDCaoDZJx8N9BBE6eXm5uXuObd6FPeg&usqp=CAU'),
+            ),
+            SizedBox(height:  size.height*0.02,),
+            Text(name.toString(), style: TextStyle(color: Colors.black,fontSize: 18,letterSpacing: 1, fontWeight: FontWeight.bold),),
+            SizedBox(height: size.height*0.01,),
+            Text(email.toString(), style: TextStyle(color: Colors.black,fontSize: 14,letterSpacing: 2,fontWeight: FontWeight.w400),),
+
+            SizedBox(height: size.height*0.04,),
+
+            Container(
+             // color: Colors.green,
+              width: size.width*0.9,
+              //height: size.height*0.06,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    //width: size.width*0.9,
+                    child: LinearPercentIndicator(
+                      width: size.width*0.55,//180.0,
+                      lineHeight: 14.0,
+                      percent: 0.85,
+                      leading: new Text("0 "),
+                      trailing: new Text("100"),
+                      backgroundColor: greyColor,
+                      progressColor: Colors.blue,
+                    ),
+                  ),
+                  Image.asset("assets/images/star.png",
+                    width: 60,
+                    height: 60,),
+
+                ],
+              ),
+            ),
+
+            SizedBox(height: size.height*0.04,),
+
+            Container(
+              // color: Colors.green,
+              width: size.width*0.9,
+              //height: size.height*0.06,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    //width: size.width*0.9,
+                    child: LinearPercentIndicator(
+                      width: size.width*0.55,//180.0,
+                      lineHeight: 14.0,
+                      percent: 0.35,
+                      leading: new Text("0 "),
+                      trailing: new Text("100"),
+                      backgroundColor: greyColor,
+                      progressColor: Colors.blue,
+                    ),
+                  ),
+                  Image.asset("assets/images/ribbon.png",
+                    width: 60,
+                    height: 60,),
+
+                ],
+              ),
+            ),
+
+            SizedBox(height: size.height*0.04,),
+
+            Container(
+              // color: Colors.green,
+              width: size.width*0.9,
+              //height: size.height*0.06,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    //width: size.width*0.9,
+                    child: LinearPercentIndicator(
+                      width: size.width*0.55,//180.0,
+                      lineHeight: 14.0,
+                      percent: 0.25,
+                      leading: new Text("0 "),
+                      trailing: new Text("100"),
+                      backgroundColor: greyColor,
+                      progressColor: Colors.blue,
+                    ),
+                  ),
+                  Image.asset("assets/images/trophy.png",
+                    width: 60,
+                    height: 60,)
+
+                ],
+              ),
+            ),
+
+            SizedBox(height: size.height*0.04,),
+
+            Container(
+              // color: Colors.green,
+              width: size.width*0.9,
+              //height: size.height*0.06,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      // Navigator.push(
+                      //   context,
+                      //   PageRouteBuilder(
+                      //     pageBuilder: (c, a1, a2) =>
+                      //         StudentEvaluationScreen(
+                      //           surahName: "الْإِخْلَاص",
+                      //           surahAyhs: "4",
+                      //           way: "surah",
+                      //           teacherEmail: email,
+                      //         ),
+                      //     transitionsBuilder: (c, anim, a2, child) =>
+                      //         FadeTransition(opacity: anim, child: child),
+                      //     transitionDuration: Duration(milliseconds: 0),
+                      //   ),
+                      // );
+                    },
+                    child: Container(
+                      width: size.width*0.6,
+                      height: size.height*0.05,
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+
+                            child: Text("My Records", style: TextStyle(color: whiteColor,fontSize: 15),),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Image.asset("assets/images/microphone.png",
+                    width: 60,
+                    height: 60,)
+
+                ],
+              ),
+            ),
+            SizedBox(height: size.height*0.04,),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (c, a1, a2) =>
+                        LeatherBoardScreen(),
+                    transitionsBuilder: (c, anim, a2, child) =>
+                        FadeTransition(opacity: anim, child: child),
+                    transitionDuration: Duration(milliseconds: 0),
+                  ),
+                );
+              },
+              child: Container(
+                width: size.width*0.9,
+                height: size.height*0.05,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      child: Text("Check leather board", style: TextStyle(color: whiteColor,fontSize: 15),),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+
+
+          ],
         ),
       ),
-
     );
   }
 }
