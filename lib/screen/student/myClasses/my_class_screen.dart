@@ -153,7 +153,8 @@ class _StudentClassScreenState extends State<StudentClassScreen> {
                           context,
                           PageRouteBuilder(
                             pageBuilder: (c, a1, a2) =>
-                                StudentHomeScreen(userType: 'Student'  , classCode: ds['classCode'].toString(),index: 4 ,),
+                                StudentHomeScreen(userType:  ds.id.toString() , classCode: ds['classCode'].toString(),
+                                  index: 4 ,classIndex: index, chapterIndex:0,),
                             transitionsBuilder: (c, anim, a2, child) =>
                                 FadeTransition(opacity: anim, child: child),
                             transitionDuration: Duration(milliseconds: 0),
@@ -221,11 +222,8 @@ class _StudentClassScreenState extends State<StudentClassScreen> {
               ),
             );
           }
-
-
         },
       ),
-
     );
   }
 }

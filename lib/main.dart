@@ -64,6 +64,7 @@ class _MyAppState extends State<MyApp> {
   getData();
   super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -91,7 +92,7 @@ class _MyAppState extends State<MyApp> {
       home:
       userType == 'Admin' ?   AdminHomeScreen(userType: userType) :
       userType == 'Teacher' ? TeacherHomeScreen(userType: userType, email: email,) :
-      userType == 'Student' ? StudentHomeScreen(userType: userType  , classCode: "",index: 0 ,) :
+      userType == 'Student' ? StudentHomeScreen(userType: userType  , classCode: "",index: 0 , chapterIndex: 0, classIndex: 0,) :
       SplashScreen(),
     );
   }

@@ -10,8 +10,8 @@ String teacherClasseModelToJson(TeacherClasseModel data) => json.encode(data.toJ
 
 class TeacherClasseModel {
   TeacherClasseModel({
-    this.classGrade,
     this.teacherUid,
+    this.classGrade,
     this.classCode,
     this.teacherEmail,
     this.chapList,
@@ -21,10 +21,11 @@ class TeacherClasseModel {
     this.className,
     this.chapterToggle2,
     this.chapterToggle1,
+    this.chapPartList,
   });
 
-  String? classGrade;
   String? teacherUid;
+  String? classGrade;
   String? classCode;
   String? teacherEmail;
   List<ChapList>? chapList;
@@ -34,10 +35,11 @@ class TeacherClasseModel {
   String? className;
   bool? chapterToggle2;
   bool? chapterToggle1;
+  List<ChapPartList>? chapPartList;
 
   factory TeacherClasseModel.fromJson(Map<String, dynamic> json) => TeacherClasseModel(
-    classGrade: json["classGrade"] == null ? null : json["classGrade"],
     teacherUid: json["teacherUid"] == null ? null : json["teacherUid"],
+    classGrade: json["classGrade"] == null ? null : json["classGrade"],
     classCode: json["classCode"] == null ? null : json["classCode"],
     teacherEmail: json["teacherEmail"] == null ? null : json["teacherEmail"],
     chapList: json["chapList"] == null ? null : List<ChapList>.from(json["chapList"].map((x) => ChapList.fromJson(x))),
@@ -47,11 +49,12 @@ class TeacherClasseModel {
     className: json["className"] == null ? null : json["className"],
     chapterToggle2: json["chapterToggle2"] == null ? null : json["chapterToggle2"],
     chapterToggle1: json["chapterToggle1"] == null ? null : json["chapterToggle1"],
+    chapPartList: json["chapPartList"] == null ? null : List<ChapPartList>.from(json["chapPartList"].map((x) => ChapPartList.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
-    "classGrade": classGrade == null ? null : classGrade,
     "teacherUid": teacherUid == null ? null : teacherUid,
+    "classGrade": classGrade == null ? null : classGrade,
     "classCode": classCode == null ? null : classCode,
     "teacherEmail": teacherEmail == null ? null : teacherEmail,
     "chapList": chapList == null ? null : List<dynamic>.from(chapList!.map((x) => x.toJson())),
@@ -61,41 +64,30 @@ class TeacherClasseModel {
     "className": className == null ? null : className,
     "chapterToggle2": chapterToggle2 == null ? null : chapterToggle2,
     "chapterToggle1": chapterToggle1 == null ? null : chapterToggle1,
+    "chapPartList": chapPartList == null ? null : List<dynamic>.from(chapPartList!.map((x) => x.toJson())),
   };
 }
 
 class ChapList {
   ChapList({
-    this.part3Toggle,
     this.chapterId,
     this.chapterName,
-    this.part1Toggle,
-    this.part2Toggle,
     this.content,
   });
 
-  bool? part3Toggle;
   String? chapterId;
   String? chapterName;
-  bool? part1Toggle;
-  bool? part2Toggle;
   Content? content;
 
   factory ChapList.fromJson(Map<String, dynamic> json) => ChapList(
-    part3Toggle: json["part3Toggle"] == null ? null : json["part3Toggle"],
     chapterId: json["chapterId"] == null ? null : json["chapterId"],
     chapterName: json["chapterName"] == null ? null : json["chapterName"],
-    part1Toggle: json["part1Toggle"] == null ? null : json["part1Toggle"],
-    part2Toggle: json["part2Toggle"] == null ? null : json["part2Toggle"],
     content: json["content"] == null ? null : Content.fromJson(json["content"]),
   );
 
   Map<String, dynamic> toJson() => {
-    "part3Toggle": part3Toggle == null ? null : part3Toggle,
     "chapterId": chapterId == null ? null : chapterId,
     "chapterName": chapterName == null ? null : chapterName,
-    "part1Toggle": part1Toggle == null ? null : part1Toggle,
-    "part2Toggle": part2Toggle == null ? null : part2Toggle,
     "content": content == null ? null : content!.toJson(),
   };
 }
@@ -116,7 +108,6 @@ class Content {
     chapterName: json["chapterName"] == null ? null : json["chapterName"],
     surahs: json["surahs"] == null ? null : List<Surah>.from(json["surahs"].map((x) => Surah.fromJson(x))),
   );
-
   Map<String, dynamic> toJson() => {
     "chapterId": chapterId == null ? null : chapterId,
     "chapterName": chapterName == null ? null : chapterName,
@@ -167,18 +158,18 @@ class Part {
 
   factory Part.fromJson(Map<String, dynamic> json) => Part(
     surahName: json["surahName"] == null ? null : json["surahName"],
+    surahGreenAyah: json["surahGreenAyah"] == null ? null : json["surahGreenAyah"],
     surahLocked: json["surahLocked"] == null ? null : json["surahLocked"],
     surahRecording: json["surahRecording"] == null ? null : json["surahRecording"],
-    surahGreenAyah: json["surahGreenAyah"] == null ? null : json["surahGreenAyah"],
     surahStars: json["surahStars"] == null ? null : json["surahStars"],
     verses: json["verses"] == null ? null : Verses.fromJson(json["verses"]),
   );
 
   Map<String, dynamic> toJson() => {
     "surahName": surahName == null ? null : surahName,
+    "surahGreenAyah": surahGreenAyah == null ? null : surahGreenAyah,
     "surahLocked": surahLocked == null ? null : surahLocked,
     "surahRecording": surahRecording == null ? null : surahRecording,
-    "surahGreenAyah": surahGreenAyah == null ? null : surahGreenAyah,
     "surahStars": surahStars == null ? null : surahStars,
     "verses": verses == null ? null : verses!.toJson(),
   };
@@ -202,32 +193,75 @@ class Verses {
 
 class SurahVerse {
   SurahVerse({
-    this.verseRecording,
     this.verseColor,
+    this.verseRecording,
     this.evaluated,
     this.verse,
   });
 
+  VerseColor? verseColor;
   String? verseRecording;
-  String? verseColor;
-  String? evaluated;
+  Evaluated? evaluated;
   String? verse;
 
   factory SurahVerse.fromJson(Map<String, dynamic> json) => SurahVerse(
+    verseColor: json["verseColor"] == null ? null : verseColorValues.map[json["verseColor"]],
     verseRecording: json["verseRecording"] == null ? null : json["verseRecording"],
-    verseColor: json["verseColor"] == null ? null : json["verseColor"],
-    evaluated: json["evaluated"] == null ? null : json["evaluated"],
+    evaluated: json["evaluated"] == null ? null : evaluatedValues.map[json["evaluated"]],
     verse: json["verse"] == null ? null : json["verse"],
   );
 
   Map<String, dynamic> toJson() => {
+    "verseColor": verseColor == null ? null : verseColorValues.reverse[verseColor],
     "verseRecording": verseRecording == null ? null : verseRecording,
-    "verseColor": verseColor == null ? null : verseColor,
-    "evaluated": evaluated == null ? null : evaluated,
+    "evaluated": evaluated == null ? null : evaluatedValues.reverse[evaluated],
     "verse": verse == null ? null : verse,
   };
 }
 
+enum Evaluated { NO }
+
+final evaluatedValues = EnumValues({
+  "no": Evaluated.NO
+});
+
+enum VerseColor { COLORS_GREY }
+
+final verseColorValues = EnumValues({
+  "Colors.grey": VerseColor.COLORS_GREY
+});
+
+class ChapPartList {
+  ChapPartList({
+    this.part3Toggle,
+    this.chapterId,
+    this.chapterName,
+    this.part1Toggle,
+    this.part2Toggle,
+  });
+
+  bool? part3Toggle;
+  String? chapterId;
+  String? chapterName;
+  bool? part1Toggle;
+  bool? part2Toggle;
+
+  factory ChapPartList.fromJson(Map<String, dynamic> json) => ChapPartList(
+    part3Toggle: json["part3Toggle"] == null ? null : json["part3Toggle"],
+    chapterId: json["chapterId"] == null ? null : json["chapterId"],
+    chapterName: json["chapterName"] == null ? null : json["chapterName"],
+    part1Toggle: json["part1Toggle"] == null ? null : json["part1Toggle"],
+    part2Toggle: json["part2Toggle"] == null ? null : json["part2Toggle"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "part3Toggle": part3Toggle == null ? null : part3Toggle,
+    "chapterId": chapterId == null ? null : chapterId,
+    "chapterName": chapterName == null ? null : chapterName,
+    "part1Toggle": part1Toggle == null ? null : part1Toggle,
+    "part2Toggle": part2Toggle == null ? null : part2Toggle,
+  };
+}
 
 class EnumValues<T> {
   Map<String, T> map;

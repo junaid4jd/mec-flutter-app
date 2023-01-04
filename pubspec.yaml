@@ -57,6 +57,7 @@ dependencies:
   dotted_border: ^2.0.0+3
   quran: ^1.1.5
   percent_indicator: ^4.2.2
+  just_audio: ^0.9.30
 
 
 dev_dependencies:

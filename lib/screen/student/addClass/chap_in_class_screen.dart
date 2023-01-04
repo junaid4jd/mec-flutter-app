@@ -1,11 +1,24 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mec/constants.dart';
+import 'package:mec/model/teacher_class_model.dart';
+import 'package:mec/screen/student/listenRecording/listen_your_recording.dart';
+import 'package:mec/screen/student/studentSurah/student_surahs_screen.dart';
 import 'package:mec/screen/student/student_home_screen.dart';
 
 class StudentClassChapScreen extends StatefulWidget {
   final String classCode;
-  const StudentClassChapScreen({Key? key, required this.classCode})
+  final String classDocId;
+
+  final int chapterIndex;
+  const StudentClassChapScreen({Key? key,
+    required this.classCode,
+    required this.classDocId,
+    required this.chapterIndex})
       : super(key: key);
 
   @override
@@ -13,14 +26,37 @@ class StudentClassChapScreen extends StatefulWidget {
 }
 
 class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
-
+  TeacherClasseModel? teacherClasseModel;
   int cups = 0, badge = 0, stars = 0;
   ScrollController? controller;
   bool isAppBarPinned = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  int totalStars = 0;
+  int totalBadges = 0;
+  int totalCups = 0;
+  getStudentData() async {
+
+    setState(() {
+      totalStars = 0;
+      totalBadges = 0;
+      totalCups = 0;
+    });
+
+    FirebaseFirestore.instance.collection("Students").doc(_auth.currentUser!.uid.toString()).get().then((value) {
+      setState(() {
+        totalStars = value["studentStars"];
+        totalBadges = value["studentBadges"];
+        totalCups = value["studentCups"];
+      });
+    });
+
+  }
 
 
   @override
   void initState() {
+    getStudentData();
     super.initState();
     controller = ScrollController()..addListener(onScroll);
     isAppBarPinned = true;
@@ -101,10 +137,25 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                child: Image.asset('assets/images/microphone.png'),
+                              GestureDetector(
+                                onTap:() {
+
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      pageBuilder: (c, a1, a2) => ListenYourRecordingScreen(),
+                                      transitionsBuilder: (c, anim, a2, child) =>
+                                          FadeTransition(opacity: anim, child: child),
+                                      transitionDuration: Duration(milliseconds: 0),
+                                    ),
+                                  );
+
+                                },
+                                child: Container(
+                                  width: 50,
+                                  height: 50,
+                                  child: Image.asset('assets/images/microphone.png'),
+                                ),
                               ),
                               SizedBox(
                                 width: 2,
@@ -139,7 +190,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       height: 15,
                                       child: Center(
                                           child: Text(
-                                        '0',
+                                        totalCups.toString(),
                                         style: TextStyle(fontSize: 10),
                                       )),
                                     ),
@@ -170,7 +221,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       height: 15,
                                       child: Center(
                                           child: Text(
-                                        '0',
+                                        totalBadges.toString(),
                                         style: TextStyle(fontSize: 10),
                                       )),
                                     ),
@@ -200,7 +251,7 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       height: 15,
                                       child: Center(
                                           child: Text(
-                                        '0',
+                                        totalStars.toString(),
                                         style: TextStyle(fontSize: 10),
                                       )),
                                     ),
@@ -215,7 +266,12 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                   Navigator.push(
                                     context,
                                     PageRouteBuilder(
-                                      pageBuilder: (c, a1, a2) => StudentHomeScreen(userType: "Student" , classCode: "",index: 5 ,),
+                                      pageBuilder: (c, a1, a2) =>
+                                          StudentHomeScreen(
+                                            userType: "Student" , classCode: "",index: 5 ,
+                                              chapterIndex: widget.chapterIndex,
+                                            classIndex: 0,
+                                          ),
                                       transitionsBuilder:
                                           (c, anim, a2, child) =>
                                           FadeTransition(
@@ -276,22 +332,113 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
 
                   child: ListView.builder(
                     padding: EdgeInsets.only(top: 10),
-                    itemCount: snapshot.data!.docs[0]["chapList"].length,
+                    itemCount: snapshot.data!.docs[widget.chapterIndex]["chapList"].length,
                     itemBuilder: (context, index) {
                       // DocumentSnapshot ds = snapshot.data!.docs[0]["chapList"][index];
                       return GestureDetector(
-                        onTap: (){
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder: (c, a1, a2) =>
-                                  StudentHomeScreen(userType: 'Student',
-                                    classCode: widget.classCode.toString(),index: 6 ,),
-                              transitionsBuilder: (c, anim, a2, child) =>
-                                  FadeTransition(opacity: anim, child: child),
-                              transitionDuration: Duration(milliseconds: 0),
-                            ),
-                          );
+                        onTap: () async {
+                          print(widget.classDocId.toString());
+
+                          FirebaseFirestore.instance.collection('StudentClasses').doc(widget.classDocId.toString()).get().then((value) {
+                            print(' This is the class data you picked');
+
+                            var data = json.encode(value.data());
+
+                            setState(() {
+                              teacherClasseModel  =  TeacherClasseModel.fromJson(json.decode(data));
+                            });
+
+                            if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true)
+                            {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (c, a1, a2) =>
+                                      StudentSurahScreen(
+                                        classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                        chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                        teacherClasseModel: teacherClasseModel!,
+                                        classDocId: widget.classDocId.toString(),
+                                        studentDocId: snapshot.data!.docs[0].id.toString(),
+                                        chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(), chapIndex: index,
+                                      ),
+                                  transitionsBuilder: (c, anim, a2, child) =>
+                                      FadeTransition(opacity: anim, child: child),
+                                  transitionDuration: Duration(milliseconds: 0),
+                                ),
+                              );
+                            }
+                            else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true)
+                            {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (c, a1, a2) =>
+                                      StudentSurahScreen(
+                                        classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                        chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                        teacherClasseModel: teacherClasseModel!,
+                                        studentDocId: snapshot.data!.docs[0].id.toString(),
+                                        classDocId: widget.classDocId.toString(),
+                                        chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(), chapIndex: index,
+                                      ),
+                                  transitionsBuilder: (c, anim, a2, child) =>
+                                      FadeTransition(opacity: anim, child: child),
+                                  transitionDuration: Duration(milliseconds: 0),
+                                ),
+                              );
+                            }
+                            else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true)
+                            {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (c, a1, a2) =>
+                                      StudentSurahScreen(
+                                        classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                        chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                        teacherClasseModel: teacherClasseModel!,
+                                        classDocId: widget.classDocId.toString(),
+                                        studentDocId: snapshot.data!.docs[0].id.toString(),
+                                        chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                        chapIndex: index,
+                                      ),
+                                  transitionsBuilder: (c, anim, a2, child) =>
+                                      FadeTransition(opacity: anim, child: child),
+                                  transitionDuration: Duration(milliseconds: 0),
+                                ),
+                              );
+                            }
+                            else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true)
+                            {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (c, a1, a2) =>
+                                      StudentSurahScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                        chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
+                                        teacherClasseModel: teacherClasseModel!,
+                                        studentDocId: snapshot.data!.docs[0].id.toString(),
+                                        classDocId: widget.classDocId.toString(),
+                                        chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                        chapIndex: index,
+                                      ),
+                                  transitionsBuilder: (c, anim, a2, child) =>
+                                      FadeTransition(opacity: anim, child: child),
+                                  transitionDuration: Duration(milliseconds: 0),
+                                ),
+                              );
+                            }
+                            else
+                            {
+                              print("chap ${index+1} is locked");
+                              Fluttertoast.showToast(
+                                msg: "Sorry locked by teacher",
+                                toastLength: Toast.LENGTH_SHORT,
+                                fontSize: 18.0,
+                              );
+                            }
+                          });
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(1.0),
@@ -342,55 +489,55 @@ class _StudentClassChapScreenState extends State<StudentClassChapScreen> {
                                       )),
                                     ),
                                   ),
-                                  Positioned.fill(
-
-                                    bottom: size.height*0.12,
-                                    child: Align(
-                                      alignment: Alignment.center,
-                                      child:  Icon(Icons.star,
-                                        color:
-                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                        snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                        Colors.grey.withOpacity(0.9),
-
-                                        size: 40,),
-                                    ),
-                                  ),
-                                  Positioned.fill(
-
-                                    bottom: size.height*0.16,
-                                    child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child:  Icon(Icons.star,color:
-
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                      Colors.grey.withOpacity(0.9),
-
-
-                                        size: 40,),
-                                    ),
-                                  ),
-                                  Positioned.fill(
-
-                                    bottom: size.height*0.16,
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child:  Icon(Icons.star,color:
-
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
-                                      snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
-                                      Colors.grey.withOpacity(0.9),
-
-                                        size: 40,),
-                                    ),
-                                  ),
+                                  // Positioned.fill(
+                                  //
+                                  //   bottom: size.height*0.12,
+                                  //   child: Align(
+                                  //     alignment: Alignment.center,
+                                  //     child:  Icon(Icons.star,
+                                  //       color:
+                                  //       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                  //       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                  //       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                  //       snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                  //       Colors.grey.withOpacity(0.9),
+                                  //
+                                  //       size: 40,),
+                                  //   ),
+                                  // ),
+                                  // Positioned.fill(
+                                  //
+                                  //   bottom: size.height*0.16,
+                                  //   child: Align(
+                                  //     alignment: Alignment.centerRight,
+                                  //     child:  Icon(Icons.star,color:
+                                  //
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                  //     Colors.grey.withOpacity(0.9),
+                                  //
+                                  //
+                                  //       size: 40,),
+                                  //   ),
+                                  // ),
+                                  // Positioned.fill(
+                                  //
+                                  //   bottom: size.height*0.16,
+                                  //   child: Align(
+                                  //     alignment: Alignment.centerLeft,
+                                  //     child:  Icon(Icons.star,color:
+                                  //
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.amber :
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.amber :
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.amber :
+                                  //     snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.amber :
+                                  //     Colors.grey.withOpacity(0.9),
+                                  //
+                                  //       size: 40,),
+                                  //   ),
+                                  // ),
                                   Positioned.fill(
 
                                     top: size.height*0.13,

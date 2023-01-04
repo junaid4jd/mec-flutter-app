@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mec/constants.dart';
@@ -8,7 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AddClassByCodeScreen extends StatefulWidget {
   final String way;
-  const AddClassByCodeScreen({Key? key, required this.way}) : super(key: key);
+  const AddClassByCodeScreen({Key? key,
+    required this.way,
+
+  }) : super(key: key);
 
   @override
   _AddClassByCodeScreenState createState() => _AddClassByCodeScreenState();
@@ -16,14 +20,18 @@ class AddClassByCodeScreen extends StatefulWidget {
 
 class _AddClassByCodeScreenState extends State<AddClassByCodeScreen> {
   final TextEditingController _codeControoler = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool _isLoading = false, chapterToggle1 = false,chapterToggle2 = false, chapterToggle3 = false, chapterToggle4 = false;
   String isClassNameExist = "", classId = "" , className = "";
   List<dynamic> chapList = [];
+
+  List<Map<String, dynamic>> chapListEvaluated = [];
+  List<dynamic> chapPartList = [];
   MethodsHandler _methodsHandler = MethodsHandler();
 
 
-  String name = '' , email = '',teacherEmail = '',uid = '';
+  String name = '' , email = '',teacherEmail = '',uid = '', isStudentAlreadyEnrolled = '',  isStudentAlreadyChapterEnrolled = '';
   String text = '';
   String subject = '',classGrade = '';
 
@@ -48,6 +56,8 @@ class _AddClassByCodeScreenState extends State<AddClassByCodeScreen> {
     // TODO: implement initState
     print(widget.way.toString());
     setState(() {
+      isStudentAlreadyChapterEnrolled = '';
+      isStudentAlreadyEnrolled = '';
       _isLoading = false;
       isClassNameExist = "";
       classId = "" ;
@@ -151,6 +161,7 @@ class _AddClassByCodeScreenState extends State<AddClassByCodeScreen> {
                               isClassNameExist = 'yes';
                               classId = element.id.toString();
                               chapList = element['chapList'];
+                              chapPartList = element['chapPartList'];
                               classGrade = element['classGrade'];
                               className = element['className'];
                               chapterToggle1 = element['chapterToggle1'];
@@ -165,67 +176,165 @@ class _AddClassByCodeScreenState extends State<AddClassByCodeScreen> {
 
                         if(isClassNameExist == 'yes') {
                           setState(() {
-                            _isLoading = false;
+                            chapListEvaluated.clear();
+                          });
+                          if(chapList.isNotEmpty) {
+                            print("we are here value.docs.isEmpty");
+
+                            for(int i=0 ;i<chapList.length ;i++) {
+                              setState(() {
+                                chapListEvaluated.add(
+                                    {
+                                      "classCode": _codeControoler.text.toString().trim(),
+                                      "chapterId": chapList[i]["chapterId"].toString(),
+                                      "chapterName": chapList[i]["chapterName"].toString(),
+                                      "isChpEvaluated": "no",
+                                      "isPartOneEvaluated": "no",
+                                      "isPartTwoEvaluated": "no",
+                                      "isPartThreeEvaluated": "no",
+                                    }
+
+                                );
+                              });
+                            }
+                          }
+
+
+                          final snapshot = await FirebaseFirestore.instance.collection('StudentClasses').get();
+                          snapshot.docs.forEach((element) {
+                            print('user data');
+                            if(element['classCode'] == _codeControoler.text.toString().trim()
+                            && element['uid'] == _auth.currentUser!.uid.toString()
+                            ) {
+                              print('user age in if of current user ');
+                              //   print(element['age']);
+                              setState(() {
+                                isStudentAlreadyEnrolled = 'yes';
+                              });
+                            }
                           });
 
-                          FirebaseFirestore.instance
-                              .collection('StudentClasses')
-                              .doc()
-                              .set({
-                            "studentEmail": email,
-                            "studentName": name,
-                            "uid":uid,
-                            "classGrade": classGrade,
-                            "chapList":chapList ,
-                            "classCode":_codeControoler.text.toString(),
-                            "className":className.toString(),
-                            "chapterToggle1": chapterToggle1,
-                            "chapterToggle2": chapterToggle2,
-                            "chapterToggle3": chapterToggle3,
-                            "chapterToggle4": chapterToggle4,
-                            "teacherEmail": teacherEmail.toString(),
-
-                          }).then((value){
+                          if(isStudentAlreadyEnrolled == 'yes') {
                             setState(() {
                               _isLoading = false;
                             });
 
-                            if(widget.way == "signUp") {
-                              Navigator.pushReplacement(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (c, a1, a2) => StudentHomeScreen(userType: "Student", classCode: _codeControoler.text.toString(),index: 0 ,),
-                                  transitionsBuilder:
-                                      (c, anim, a2, child) =>
-                                      FadeTransition(
-                                          opacity: anim,
-                                          child: child),
-                                  transitionDuration:
-                                  Duration(milliseconds: 0),
-                                ),
-                              );
-                            }
-                            else {
+                            _methodsHandler.showAlertDialog(
+                                context, 'Sorry', 'You are already enrolled to this class');
 
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (c, a1, a2) => StudentHomeScreen(userType: "Student" , classCode: _codeControoler.text.toString(),index: 0 ,),
-                                  transitionsBuilder:
-                                      (c, anim, a2, child) =>
-                                      FadeTransition(
-                                          opacity: anim,
-                                          child: child),
-                                  transitionDuration:
-                                  Duration(milliseconds: 0),
-                                ),
-                              );
+                          } else {
 
-                            }
+                            FirebaseFirestore.instance
+                                .collection('StudentClasses')
+                                .doc()
+                                .set({
+                              "studentEmail": email,
+                              "studentName": name,
+                              "uid":uid,
+                              "classGrade": classGrade,
+                              "chapList":chapList ,
+                              "chapPartList":chapPartList ,
+                              "classCode":_codeControoler.text.toString(),
+                              "className":className.toString(),
+                              "chapterToggle1": chapterToggle1,
+                              "chapterToggle2": chapterToggle2,
+                              "chapterToggle3": chapterToggle3,
+                              "chapterToggle4": chapterToggle4,
+                              "teacherEmail": teacherEmail.toString(),
+
+                            }).then((value) async {
+
+                              final snapshot = await FirebaseFirestore.instance.collection('StudentChapterEvaluation').get();
+                              snapshot.docs.forEach((element) {
+                                print('user data');
+                                if(element['classCode'] == _codeControoler.text.toString().trim()
+                                    && element['uid'] == _auth.currentUser!.uid.toString()
+                                ) {
+                                  print('user age in if of current user ');
+                                  //   print(element['age']);
+                                  setState(() {
+                                    isStudentAlreadyChapterEnrolled = 'yes';
+                                  });
+                                }
+                              });
+
+                              if(isStudentAlreadyChapterEnrolled != 'yes') {
+                                FirebaseFirestore.instance
+                                    .collection('StudentChapterEvaluation')
+                                    .doc()
+                                    .set({
+                                  "studentEmail": email,
+                                  "studentName": name,
+                                  "uid":uid,
+                                  "chapEvaluationList": chapListEvaluated,
+                                  "classCode":_codeControoler.text.toString(),
+                                  "className":className.toString(),
+                                  "teacherEmail": teacherEmail.toString(),
+                                }).then((value) {
+                                  print("StudentChapterEvaluation Done");
+                                });
+                              } else {
+                                print('sorry StudentChapterEvaluation is yes');
+                              }
 
 
 
-                          });
+
+                              setState(() {
+                                _isLoading = false;
+                              });
+
+                              if(widget.way == "signUp") {
+                                Navigator.pushReplacement(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (c, a1, a2) => StudentHomeScreen(
+                                      userType: "Student", classCode: _codeControoler.text.toString(),index: 0,
+                                      chapterIndex: 0,
+                                      classIndex: 0,
+                                    ),
+                                    transitionsBuilder:
+                                        (c, anim, a2, child) =>
+                                        FadeTransition(
+                                            opacity: anim,
+                                            child: child),
+                                    transitionDuration:
+                                    Duration(milliseconds: 0),
+                                  ),
+                                );
+                              }
+                              else {
+
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (c, a1, a2) =>
+                                        StudentHomeScreen(
+                                          userType: "Student" , classCode: _codeControoler.text.toString(),index: 0 ,
+                                          chapterIndex: 0,
+                                          classIndex: 0,
+                                        ),
+                                    transitionsBuilder:
+                                        (c, anim, a2, child) =>
+                                        FadeTransition(
+                                            opacity: anim,
+                                            child: child),
+                                    transitionDuration:
+                                    Duration(milliseconds: 0),
+                                  ),
+                                );
+
+                              }
+
+
+
+                            });
+
+                          }
+
+
+
+
 
 
 

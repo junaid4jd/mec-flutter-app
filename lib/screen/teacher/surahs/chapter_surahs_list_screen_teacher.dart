@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mec/constants.dart';
 import 'package:mec/model/student_classes_model.dart' as studentModel;
 import 'package:mec/model/teacher_class_model.dart';
@@ -15,9 +16,12 @@ class TeacherSurahListScreen extends StatefulWidget {
   final String chapterId;
   final String classDocId;
   final String chapterName;
+  final int chapIndex;
   final TeacherClasseModel teacherClasseModel;
-  const TeacherSurahListScreen({Key? key, required this.classCode, required this.chapterId, required this.teacherClasseModel, required this.classDocId,
-  required this.chapterName
+  const TeacherSurahListScreen({Key? key,
+    required this.classCode, required this.chapterId, required this.teacherClasseModel, required this.classDocId,
+  required this.chapterName,
+    required this.chapIndex
   }) : super(key: key);
 
   @override
@@ -33,27 +37,42 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
   List<ChapList>? chapListForUpdate;
   TeacherClasseModel? teacherClasseModelUpdated;
   studentModel.StudentClassesModel? studentClassesModel;
-  List<Map<String, dynamic>> chapterList = [];
-  String name = '' , email = '';
+  List<Map<String, dynamic>> chapterPartList = [];
+  List<Map<String, dynamic>> chapterStudentList = [];
+  String name = '' , email = '',studentsUpdated = 'no';
 
   @override
   void initState() {
     // TODO: implement initState
+    getChapPart();
     print('we are in teacher surah list');
-    print(widget.teacherClasseModel.chapList!.length);
-    print(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![0].part1![0].surahName.toString());
-    print(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![0].part1![0].surahName.toString());
+    print(widget.teacherClasseModel.chapPartList!.length);
+    print(widget.teacherClasseModel.chapPartList![int.parse(widget.chapterId.toString())-1].part1Toggle);
     setState(() {
       isLoading = false;
-      part1On = widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].part1Toggle!;
-      part2On = widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].part2Toggle!;
-      part3On = widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].part3Toggle!;
+      studentsUpdated = 'no';
     });
     getData();
-    getEncodedData();
-    getStudentClasses();
+    //getEncodedData();
     super.initState();
   }
+
+  getChapPart() async {
+
+    for(int i=0; i<= widget.teacherClasseModel.chapPartList!.length ; i++) {
+
+      if(widget.teacherClasseModel.chapPartList![i].chapterName.toString() == widget.chapterName) {
+        print('chapPart is here');
+        setState(() {
+          part1On = widget.teacherClasseModel.chapPartList![i].part1Toggle!;
+          part2On = widget.teacherClasseModel.chapPartList![i].part2Toggle!;
+          part3On = widget.teacherClasseModel.chapPartList![i].part3Toggle!;
+        });
+      }
+    }
+
+  }
+
 
   getData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -67,11 +86,22 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
     });
   }
 
-  getStudentClasses() async {
+  getStudentClasses(List<Map<String, dynamic>> model) async {
 
     FirebaseFirestore.instance.collection('StudentClasses').where('classCode', isEqualTo: widget.classCode.toString() ).get().then((value) {
       print(' This is the class data you picked student');
       print(value.docs.length.toString());
+
+      for(int i=0 ;i<value.docs.length;i++) {
+        FirebaseFirestore.instance.collection("StudentClasses").doc(value.docs[i].id.toString())
+            .update({'chapPartList': model}).then((value1) {
+          print("Updated");
+        });
+      }
+      setState(() {
+        studentsUpdated = 'yes';
+        isLoading = false;
+      });
       //var data = json.encode(value.data());
       // setState(() {
       //   studentClassesModel  =  studentModel.StudentClassesModel.fromJson(json.decode(data));
@@ -81,7 +111,7 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
   }
 
   getEncodedData() async {
-    var json = jsonEncode(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.toJson());
+    var json = jsonEncode(widget.teacherClasseModel.chapList![widget.chapIndex].content!.toJson());
     print(json + 'This is content');
     // var json = jsonEncode(opAttrList, toEncodable: (e) => e.toJsonAttr());
   }
@@ -94,8 +124,14 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
         var data = json.encode(value.data());
         setState(() {
           teacherClasseModelUpdated  =  TeacherClasseModel.fromJson(json.decode(data));
-          isLoading = false;
         });
+        setState(() {
+          chapterStudentList.clear();
+        });
+        for(int i=0; i<teacherClasseModelUpdated!.chapPartList!.length;i++) {
+          chapterStudentList.add(teacherClasseModelUpdated!.chapPartList![i].toJson());
+        }
+        getStudentClasses(chapterStudentList);
         print('Teacher Name');
         print(teacherClasseModelUpdated!.teacherName.toString());
       });
@@ -110,7 +146,7 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
-        title: Text(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].chapterName.toString()),
+        title: Text(widget.teacherClasseModel.chapList![widget.chapIndex].chapterName.toString()),
         centerTitle: true,
       ),
 
@@ -124,7 +160,7 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
       ) :
 
       ListView.builder(
-        itemCount: widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs!.length,//snapshot.data!.docs[0]["chapList"].length,
+        itemCount: widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs!.length,//snapshot.data!.docs[0]["chapList"].length,
         itemBuilder: (context, index) {
           // DocumentSnapshot ds = snapshot.data!.docs[0]["chapList"][index];
           return
@@ -157,60 +193,72 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount:
-                          index == 0 ?  widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part1!.length :
-                          index == 1 ? widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part2!.length :
-                          index == 2 ? widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part3!.length :
+                          index == 0 ?  widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part1!.length :
+                          index == 1 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part2!.length :
+                          index == 2 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part3!.length :
                               0
                           ,
                           itemBuilder: (context, indexSurah) {
                             return GestureDetector(
                               onTap: () {
 
-                                // Navigator.push(
-                                //   context,
-                                //   PageRouteBuilder(
-                                //     pageBuilder: (c, a1, a2) =>
-                                //         DailyFollowUpAyahScreen(
-                                //           surahName: "الْإِخْلَاص",
-                                //           surahAyhs: "4",
-                                //           way: "surah",
-                                //           teacherEmail: email,
-                                //         ),
-                                //     transitionsBuilder: (c, anim, a2, child) =>
-                                //         FadeTransition(opacity: anim, child: child),
-                                //     transitionDuration: Duration(milliseconds: 0),
-                                //   ),
-                                // );
+                                if((index == 0 && part1On)  || (index == 1 && part2On) || (index == 2 && part3On) ) {
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      pageBuilder: (c, a1, a2) =>
+                                          StudentEvaluationScreen(
+                                            surahNumber:
+
+                                            index == 0 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part1![indexSurah].surahName.toString() :
+                                            index == 1 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part2![indexSurah].surahName.toString() :
+                                            index == 2 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part3![indexSurah].surahName.toString() :
+                                            "الْإِخْلَاص",
+
+
+                                            surahName:
+                                            index == 0 ? getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part1![indexSurah].surahName.toString())).toString() :
+                                            index == 1 ? getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part2![indexSurah].surahName.toString())).toString() :
+                                            index == 2 ? getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part3![indexSurah].surahName.toString())).toString() :
+                                            "الْإِخْلَاص",
+                                            surahAyhs:
+                                            index == 0 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part1![indexSurah].verses!.surahVerses!.length.toString()
+                                            //getVerseCount(int.parse(.surahName.toString())).toString()
+                                            :
+                                            index == 1 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part2![indexSurah].verses!.surahVerses!.length.toString() :
+                                            //getVerseCount(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part2![indexSurah].surahName.toString())).toString() :
+                                            index == 2 ? widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part3![indexSurah].verses!.surahVerses!.length.toString() :
+                                           // getVerseCount(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part3![indexSurah].surahName.toString())).toString() :
+                                            "0",
+                                            way: "surah",
+                                            chapterId: widget.chapterId,
+                                            classDocId: widget.classDocId,
+                                            chapterName: widget.chapterName,
+                                            classCode: widget.teacherClasseModel.classCode.toString(),
+                                            teacherEmail: email,
+                                            chapterIndex: widget.chapIndex,
+                                            partIndex: index,
+                                            surahIndex: indexSurah,
+                                            teacherClasseModel: teacherClasseModelUpdated == null ? widget.teacherClasseModel : teacherClasseModelUpdated!,
+                                          ),
+                                      transitionsBuilder: (c, anim, a2, child) =>
+                                          FadeTransition(opacity: anim, child: child),
+                                      transitionDuration: Duration(milliseconds: 0),
+                                    ),
+                                  );
+                                }
+                                else {
+                                  Fluttertoast.showToast(
+                                    msg: "Sorry Part is off!",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    timeInSecForIosWeb: 4,
+                                  );
+                                }
 
 
 
 
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (c, a1, a2) =>
-                                        StudentEvaluationScreen(
-                                          surahName:
-                                          index == 0 ? getSurahName(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part1![indexSurah].surahName.toString())).toString() :
-                                          index == 1 ? getSurahName(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part2![indexSurah].surahName.toString())).toString() :
-                                          index == 2 ? getSurahName(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part3![indexSurah].surahName.toString())).toString() :
-                                          "الْإِخْلَاص",
-                                          surahAyhs:
-                                          index == 0 ? getVerseCount(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part1![indexSurah].surahName.toString())).toString() :
-                                          index == 1 ? getVerseCount(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part2![indexSurah].surahName.toString())).toString() :
-                                          index == 2 ? getVerseCount(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part3![indexSurah].surahName.toString())).toString() :
-                                          "0",
-                                          way: "surah",
-                                          classCode: widget.teacherClasseModel.classCode.toString(),
-                                          teacherEmail: email,
-                                          teacherClasseModel: widget.teacherClasseModel,
-
-                                        ),
-                                    transitionsBuilder: (c, anim, a2, child) =>
-                                        FadeTransition(opacity: anim, child: child),
-                                    transitionDuration: Duration(milliseconds: 0),
-                                  ),
-                                );
 
                               },
                               child: Padding(
@@ -238,14 +286,14 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
 
                                         child: Center(child: Text(
                                             index == 0 ?
-                                            getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part1![indexSurah].surahName.toString())).toString()
+                                            getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part1![indexSurah].surahName.toString())).toString()
 
                                              :
                                             index == 1 ?
-                                            getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part2![indexSurah].surahName.toString())).toString()
+                                            getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part2![indexSurah].surahName.toString())).toString()
                                                 :
                                             index == 2 ?
-                                            getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![int.parse(widget.chapterId.toString())-1].content!.surahs![index].part3![indexSurah].surahName.toString())).toString()
+                                            getSurahNameArabic(int.parse(widget.teacherClasseModel.chapList![widget.chapIndex].content!.surahs![index].part3![indexSurah].surahName.toString())).toString()
                                                 :
                                             "الْإِخْلَاص"
 
@@ -292,10 +340,6 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                   valueFontSize: 0.0,
                                   toggleSize: 18.0,
                                   value:
-                                  // snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" ? snapshot.data!.docs[0]["chapterToggle1"] :
-                                  // snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" ? snapshot.data!.docs[0]["chapterToggle2"] :
-                                  // snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" ? snapshot.data!.docs[0]["chapterToggle3"] :
-                                  // snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" ? snapshot.data!.docs[0]["chapterToggle4"] :
                                  index == 0 ? part1On :
                                  index == 1 ? part2On :
                                  index == 2 ? part3On :
@@ -304,7 +348,7 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                   borderRadius: 30.0,
                                   onToggle: (val) async {
                                     setState(() {
-                                      chapterList.clear();
+                                      chapterPartList.clear();
                                     });
                                     print("chap List toggle");
                                     print(val.toString());
@@ -319,37 +363,36 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           isLoading = true;
                                         });
 
-                                        for(int i=0 ; i<widget.teacherClasseModel.chapList!.length ; i++) {
-                                          if(widget.teacherClasseModel.chapList![i].chapterName == "جزء عم")
+                                        for(int i=0 ; i<widget.teacherClasseModel.chapPartList!.length ; i++) {
+                                          if(widget.teacherClasseModel.chapPartList![i].chapterName == "جزء عم")
                                           {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part2Toggle": part2On,
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -364,34 +407,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء عم")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -407,34 +448,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء عم")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
                                                 "part3Toggle": part3On,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -455,32 +494,31 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part2Toggle": part2On,
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -495,34 +533,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء تبارك")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -538,34 +574,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء تبارك")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
                                                 "part3Toggle": part3On,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -586,32 +620,31 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part2Toggle": part2On,
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -626,34 +659,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء قدسمع")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -669,34 +700,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء قدسمع")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
                                                 "part3Toggle": part3On,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -718,32 +747,31 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part2Toggle": part2On,
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -758,34 +786,32 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء الذاريات")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                                "part3Toggle": part3On,
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
@@ -801,63 +827,38 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
                                           if(widget.teacherClasseModel.chapList![i].chapterName == "جزء الذاريات")
                                           {
                                             print("$i this is i");
-
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": "1",
+                                              chapterPartList.add({
+                                                "chapterId": widget.chapterId,
+                                                "chapterName": widget.chapterName,
                                                 "part1Toggle": part1On,
                                                 "part2Toggle": part2On,
                                                 "part3Toggle": part3On,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
                                               });
                                             });
                                           }
                                           else {
                                             print("$i this is i");
                                             setState(() {
-                                              chapterList.add({
-                                                "chapterName": widget.teacherClasseModel.chapList![i].chapterName,
-                                                "chapterId": widget.teacherClasseModel.chapList![i].chapterId,
-                                                "part1Toggle": widget.teacherClasseModel.chapList![i].part1Toggle,
-                                                "part2Toggle": widget.teacherClasseModel.chapList![i].part2Toggle,
-                                                "part3Toggle": widget.teacherClasseModel.chapList![i].part3Toggle,
-                                                "content" : widget.teacherClasseModel.chapList![i].content!.toJson(),
+                                              chapterPartList.add({
+                                                "chapterName": widget.teacherClasseModel.chapPartList![i].chapterName,
+                                                "chapterId": widget.teacherClasseModel.chapPartList![i].chapterId,
+                                                "part1Toggle": widget.teacherClasseModel.chapPartList![i].part1Toggle,
+                                                "part2Toggle": widget.teacherClasseModel.chapPartList![i].part2Toggle,
+                                                "part3Toggle": widget.teacherClasseModel.chapPartList![i].part3Toggle,
+
                                               });
                                             });
 
                                           }
                                         }
-                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapList': chapterList}).then((value) {
+                                        FirebaseFirestore.instance.collection("Classes").doc(widget.classDocId).update({'chapPartList': chapterPartList}).then((value) {
                                           print("Updated");
                                           updateModel();
                                         });
                                       }
                                     }
 
-
-
-                                    // if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1") {
-                                    //   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-                                    //     "chapterToggle1": val,
-                                    //   });
-                                    // }
-                                    // else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2") {
-                                    //   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-                                    //     "chapterToggle2": val,
-                                    //   });
-                                    // }
-                                    // else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3") {
-                                    //   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-                                    //     "chapterToggle3": val,
-                                    //   });
-                                    // }
-                                    // else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4") {
-                                    //   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-                                    //     "chapterToggle4": val,
-                                    //   });
-                                    // }
-                                    //
 
                                   },
                                 ),
@@ -1263,123 +1264,3 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
   }
 }
 
-// Padding(
-//     padding: const EdgeInsets.all(8),
-//     child: Container(
-//       height: size.height*0.25,
-//       width: size.width*0.95,
-//       decoration: BoxDecoration(
-//         color:
-//
-//         snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" && snapshot.data!.docs[0]["chapterToggle1"] == true ? Colors.white :
-//         snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" && snapshot.data!.docs[0]["chapterToggle2"] == true ? Colors.white :
-//         snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" && snapshot.data!.docs[0]["chapterToggle3"] == true ? Colors.white :
-//         snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" && snapshot.data!.docs[0]["chapterToggle4"] == true ? Colors.white :
-//         Colors.grey.withOpacity(0.5),
-//
-//         borderRadius: BorderRadius.circular(10),
-//         border: Border.all(color: greyColor,width: 0.5),
-//       ),
-//       child: Column(children: [
-//
-//         Container(
-//           decoration: BoxDecoration(
-//             color: primaryColor.withOpacity(0.8),
-//             borderRadius: BorderRadius.circular(10),
-//             //border: Border.all(color: greyColor,width: 0.5),
-//           ),
-//           width: size.width*0.95,
-//           height: size.height*0.15,
-//           child: Image.network('https://www.teacheracademy.eu/wp-content/uploads/2020/02/english-classroom.jpg',fit: BoxFit.cover,),
-//         ),
-//         ListTile(
-//           tileColor: lightGreyColor,
-//           leading: CircleAvatar(
-//             backgroundColor: lightGreyColor,
-//             radius: 30,
-//             backgroundImage: NetworkImage(
-//                 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNDgyaDCaoDZJx8N9BBE6eXm5uXuObd6FPeg&usqp=CAU'),
-//           ),
-//           // CircleAvatar(
-//           //   backgroundColor: const Color(0xff764abc),
-//           //   child: Text(ds['name'].toString()[0]),
-//           // ),
-//           title: Text(snapshot.data!.docs[0]["className"].toString(), style: body1Green,), // ${snapshot.data!.docs[0]["className"].toString()}
-//           subtitle: Text(snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(), style: TextStyle(fontSize: 14,color: Colors.black),),
-//           trailing:   Container(
-//             width: size.width*0.2,
-//             child: FlutterSwitch(
-//               activeColor: primaryColor,
-//               width: 43.0,
-//               height: 25.0,
-//               valueFontSize: 0.0,
-//               toggleSize: 18.0,
-//               value:
-//               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1" ? snapshot.data!.docs[0]["chapterToggle1"] :
-//               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2" ? snapshot.data!.docs[0]["chapterToggle2"] :
-//               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3" ? snapshot.data!.docs[0]["chapterToggle3"] :
-//               snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4" ? snapshot.data!.docs[0]["chapterToggle4"] :
-//               false,
-//               borderRadius: 30.0,
-//               onToggle: (val) async {
-//                 print("chap List toggle");
-//                 print(val.toString());
-//
-//                 if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1") {
-//                   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-//                     "chapterToggle1": val,
-//                   });
-//                 }
-//                 else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2") {
-//                   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-//                     "chapterToggle2": val,
-//                   });
-//                 }
-//                 else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3") {
-//                   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-//                     "chapterToggle3": val,
-//                   });
-//                 }
-//                 else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4") {
-//                   FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
-//                     "chapterToggle4": val,
-//                   });
-//                 }
-//
-//                 // setState(() {
-//                 //   toggleVal[index] = val;
-//                 // });
-//                 // print(snapshot.data!.docs[0].id.toString());
-//
-//                 // updateListToggle(snapshot.data!.docs[0]["chapList"],
-//                 //     snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
-//                 //   val,
-//                 //     snapshot.data!.docs[0].id.toString()
-//                 // );
-//
-//                 // FirebaseFirestore.instance.collection("Classes").
-//
-//                 //  var target = snapshot.data!.docs[0]["chapList"].firstWhere((item) => item["chapterName"] == snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString());
-//                 // print(target.toString());
-//                 // print(target["chapterToggle"].toString());
-//
-//                 //if (target != null) {
-//                 // setState(() {
-//                 //   snapshot.data!.docs[0]["chapList"][index]["chapterToggle"] = val;
-//                 // });
-//                 //target["quantity"] + 1;
-//                 //}
-//
-//
-//                 // SharedPreferences prefs = await SharedPreferences.getInstance();
-//                 // prefs.setBool('statusDaily', val );
-//                 // prefs.setString('daily', statusDaily ? 'yes' : 'no');
-//                 // getSettingsStatus();
-//                 // postData1(status, 'security');
-//               },
-//             ),
-//           ),
-//         ),
-//       ],
-//       ),
-//     ));

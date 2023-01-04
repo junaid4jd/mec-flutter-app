@@ -36,6 +36,18 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     // TODO: implement initState
+    if(widget.userType.toString() == 'Teacher') {
+      setState(() {
+        _emailControoler.text = 'georgehenrry@gmail.com';
+        _passwordControoler.text = '12345678';
+      });
+    } else {
+      setState(() {
+        _emailControoler.text = 'abdul@gmail.com';
+        _passwordControoler.text = '12345678';
+      });
+    }
+
     setState(() {
       isCreated = '';
       isCreatedStudent = '';
@@ -403,6 +415,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             pageBuilder: (c, a1, a2) =>
                                                 StudentHomeScreen(userType: widget.userType
                                                     , classCode: "",index: 0 ,
+                                                  chapterIndex: 0,
+                                                  classIndex: 0,
                                                 ),
                                             transitionsBuilder:
                                                 (c, anim, a2, child) =>

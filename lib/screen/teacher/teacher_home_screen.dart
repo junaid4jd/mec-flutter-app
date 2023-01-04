@@ -20,7 +20,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   List<Widget> _pages = [
     ClassesScreen(email: "",),
     StudentScreenTeacher(surahName: "",surahAyhs: "",way: ""),
-    TeacherProfileScreen(),
+    //TeacherProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -36,7 +36,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       _pages = [
         ClassesScreen(email: widget.email,),
         StudentScreenTeacher(surahName: "",surahAyhs: "",way: ""),
-        TeacherProfileScreen(),
+       // TeacherProfileScreen(),
       ];
     });
 
@@ -164,54 +164,54 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                     ],
                   ),
                 ),
-                orientation == Orientation.portrait
-                    ? BottomNavigationBarItem(
-                  icon: Padding(
-                    padding: EdgeInsets.only(bottom: 4),
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedIndex = 2;
-                          _pages[2] = TeacherProfileScreen();
-                        });
-                      },
-                      child: Icon(
-                        Icons.account_circle,
-                        size: 25,
-                      ),
-                    ),
-                  ),
-                  label: 'Profile',
-                )
-                    : BottomNavigationBarItem(
-                  icon: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedIndex = 2;
-                              _pages[2] = TeacherProfileScreen();
-                            });
-                          },
-                          child: Icon(
-                            Icons.account_circle,
-                            size: 25,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      Text(
-                        'Profile',
-                        style: TextStyle(fontSize: 15),
-                      )
-                    ],
-                  ),
-                ),
+                // orientation == Orientation.portrait
+                //     ? BottomNavigationBarItem(
+                //   icon: Padding(
+                //     padding: EdgeInsets.only(bottom: 4),
+                //     child: InkWell(
+                //       onTap: () {
+                //         setState(() {
+                //           _selectedIndex = 2;
+                //           _pages[2] = TeacherProfileScreen();
+                //         });
+                //       },
+                //       child: Icon(
+                //         Icons.account_circle,
+                //         size: 25,
+                //       ),
+                //     ),
+                //   ),
+                //   label: 'Profile',
+                // )
+                //     : BottomNavigationBarItem(
+                //   icon: Row(
+                //     mainAxisAlignment: MainAxisAlignment.center,
+                //     children: [
+                //       Padding(
+                //         padding: EdgeInsets.only(bottom: 4),
+                //         child: InkWell(
+                //           onTap: () {
+                //             setState(() {
+                //               _selectedIndex = 2;
+                //               _pages[2] = TeacherProfileScreen();
+                //             });
+                //           },
+                //           child: Icon(
+                //             Icons.account_circle,
+                //             size: 25,
+                //           ),
+                //         ),
+                //       ),
+                //       SizedBox(
+                //         width: 8,
+                //       ),
+                //       Text(
+                //         'Profile',
+                //         style: TextStyle(fontSize: 15),
+                //       )
+                //     ],
+                //   ),
+                // ),
               ],
             ),
           ),

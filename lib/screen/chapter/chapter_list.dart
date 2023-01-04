@@ -75,6 +75,7 @@ class _ChapterListState extends State<ChapterList> {
     FirebaseFirestore.instance.collection('Classes').doc(widget.classDocId.toString()).get().then((value) {
       print(' This is the class data you picked');
       var data = json.encode(value.data());
+      //log(data);
       setState(() {
       teacherClasseModel  =  TeacherClasseModel.fromJson(json.decode(data));
       });
@@ -82,6 +83,61 @@ class _ChapterListState extends State<ChapterList> {
       print(teacherClasseModel!.teacherName.toString());
     });
   }
+
+  updateInStudents(int number, bool val , String classCode) async {
+    print('$number $val $classCode StudentClasses');
+    if(number == 1) {
+      FirebaseFirestore.instance.collection("StudentClasses").where("classCode", isEqualTo: classCode.toString()).get().then((value)
+      {
+
+        for(int i=0;   i < value.docs.length ; i++) {
+          print(i.toString());
+          print(value.docs[i].id.toString() + " in Loop");
+          FirebaseFirestore.instance.collection("StudentClasses").doc(value.docs[i].id.toString()).update({
+            "chapterToggle1": val,
+          });
+        }
+      });
+    }
+    else if(number == 2) {
+      FirebaseFirestore.instance.collection("StudentClasses").where("classCode", isEqualTo: classCode.toString()).get().then((value)
+      {
+        print(value.docs.length.toString());
+        for(int i=0;  i < value.docs.length; i++) {
+          FirebaseFirestore.instance.collection("StudentClasses").doc(value.docs[i].id.toString()).update({
+            "chapterToggle2": val,
+          });
+        }
+      });
+    }
+    else if(number == 3) {
+      FirebaseFirestore.instance.collection("StudentClasses").where("classCode", isEqualTo: classCode.toString()).get().then((value)
+      {
+        print(value.docs.length.toString());
+        for(int i=0;   i < value.docs.length; i++) {
+          FirebaseFirestore.instance.collection("StudentClasses").doc(value.docs[i].id.toString()).update({
+            "chapterToggle3": val,
+          });
+        }
+      });
+    }
+    else if(number == 4) {
+      FirebaseFirestore.instance.collection("StudentClasses").where("classCode", isEqualTo: classCode.toString()).get().then((value)
+      {
+        print(value.docs.length.toString());
+        for(int i=0;   i < value.docs.length; i++) {
+          FirebaseFirestore.instance.collection("StudentClasses").doc(value.docs[i].id.toString()).update({
+            "chapterToggle4": val,
+          });
+        }
+      });
+    }
+
+
+
+  }
+
+
 
   @override
   void initState() {
@@ -125,6 +181,7 @@ class _ChapterListState extends State<ChapterList> {
                   itemCount: snapshot.data!.docs[0]["chapList"].length,
                   itemBuilder: (context, index) {
                    // DocumentSnapshot ds = snapshot.data!.docs[0]["chapList"][index];
+                    print(snapshot.data!.docs[0]["classCode"].toString() + " this is code" );
                     return GestureDetector(
                       onTap: () {
 
@@ -147,7 +204,7 @@ class _ChapterListState extends State<ChapterList> {
                                       chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
                                       teacherClasseModel: teacherClasseModel!,
                                       classDocId: widget.classDocId.toString(),
-                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(), chapIndex: index,
                                     ),
                                 transitionsBuilder: (c, anim, a2, child) =>
                                     FadeTransition(opacity: anim, child: child),
@@ -161,11 +218,12 @@ class _ChapterListState extends State<ChapterList> {
                               context,
                               PageRouteBuilder(
                                 pageBuilder: (c, a1, a2) =>
-                                    TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                    TeacherSurahListScreen(
+                                      classCode: snapshot.data!.docs[0]["classCode"].toString(),
                                       chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
                                       teacherClasseModel: teacherClasseModel!,
                                       classDocId: widget.classDocId.toString(),
-                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                      chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(), chapIndex: index,
                                     ),
                                 transitionsBuilder: (c, anim, a2, child) =>
                                     FadeTransition(opacity: anim, child: child),
@@ -179,11 +237,13 @@ class _ChapterListState extends State<ChapterList> {
                               context,
                               PageRouteBuilder(
                                 pageBuilder: (c, a1, a2) =>
-                                    TeacherSurahListScreen(classCode: snapshot.data!.docs[0]["classCode"].toString(),
+                                    TeacherSurahListScreen(
+                                      classCode: snapshot.data!.docs[0]["classCode"].toString(),
                                       chapterId: snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString(),
                                       teacherClasseModel: teacherClasseModel!,
                                       classDocId: widget.classDocId.toString(),
                                       chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                      chapIndex: index,
                                     ),
                                 transitionsBuilder: (c, anim, a2, child) =>
                                     FadeTransition(opacity: anim, child: child),
@@ -202,6 +262,7 @@ class _ChapterListState extends State<ChapterList> {
                                       teacherClasseModel: teacherClasseModel!,
                                       classDocId: widget.classDocId.toString(),
                                       chapterName: snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
+                                      chapIndex: index,
                                     ),
                                 transitionsBuilder: (c, anim, a2, child) =>
                                     FadeTransition(opacity: anim, child: child),
@@ -218,11 +279,7 @@ class _ChapterListState extends State<ChapterList> {
                               fontSize: 18.0,
                             );
                           }
-
                         });
-
-
-
                       },
                       child: Padding(
                           padding: const EdgeInsets.all(8),
@@ -286,56 +343,30 @@ class _ChapterListState extends State<ChapterList> {
                                       print(val.toString());
 
                                       if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "1") {
-                                        FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
+                                        FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString())
+                                            .update({
                                           "chapterToggle1": val,
                                         });
+                                        updateInStudents(1, val, snapshot.data!.docs[0]["classCode"].toString());
                                       }
                                       else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "2") {
                                         FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
                                           "chapterToggle2": val,
                                         });
+                                        updateInStudents(2, val, snapshot.data!.docs[0]["classCode"].toString());
                                       }
                                       else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "3") {
                                         FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
                                           "chapterToggle3": val,
                                         });
+                                        updateInStudents(3, val, snapshot.data!.docs[0]["classCode"].toString());
                                       }
                                       else if(snapshot.data!.docs[0]["chapList"][index]["chapterId"].toString() == "4") {
                                         FirebaseFirestore.instance.collection("Classes").doc(snapshot.data!.docs[0].id.toString()).update({
                                           "chapterToggle4": val,
                                         });
+                                        updateInStudents(4, val, snapshot.data!.docs[0]["classCode"].toString());
                                       }
-// This is the class data you picked student
-                                      // setState(() {
-                                      //   toggleVal[index] = val;
-                                      // });
-                                      // print(snapshot.data!.docs[0].id.toString());
-
-                                      // updateListToggle(snapshot.data!.docs[0]["chapList"],
-                                      //     snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString(),
-                                      //   val,
-                                      //     snapshot.data!.docs[0].id.toString()
-                                      // );
-
-                                     // FirebaseFirestore.instance.collection("Classes").
-
-                                     //  var target = snapshot.data!.docs[0]["chapList"].firstWhere((item) => item["chapterName"] == snapshot.data!.docs[0]["chapList"][index]["chapterName"].toString());
-                                     // print(target.toString());
-                                     // print(target["chapterToggle"].toString());
-
-                                      //if (target != null) {
-                                      // setState(() {
-                                      //   snapshot.data!.docs[0]["chapList"][index]["chapterToggle"] = val;
-                                      // });
-                                        //target["quantity"] + 1;
-                                      //}
-
-
-                                      // SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      // prefs.setBool('statusDaily', val );
-                                      // prefs.setString('daily', statusDaily ? 'yes' : 'no');
-                                      // getSettingsStatus();
-                                      // postData1(status, 'security');
                                     },
                                   ),
                                 ),
@@ -350,8 +381,6 @@ class _ChapterListState extends State<ChapterList> {
               ),
             );
           }
-
-
         },
       ),
 

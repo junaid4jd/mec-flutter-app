@@ -1,69 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mec/constants.dart';
-import 'package:mec/model/teacher_class_model.dart';
 import 'package:mec/screen/teacher/studentEvaluation/ayah_evaluation_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quran/quran.dart';
 
-class StudentEvaluationScreen extends StatefulWidget {
-  final String surahName;
-  final String surahNumber;
-  final String surahAyhs;
-  final String way;
-  final String classCode;
-  final String teacherEmail;
-  final String chapterId;
-  final String classDocId;
-  final String chapterName;
-  final int chapterIndex;
-  final int partIndex;
-  final int surahIndex;
-  final TeacherClasseModel teacherClasseModel;
-
-  const StudentEvaluationScreen({Key? key,
-    required this.surahName, required this.surahAyhs, required this.way, required this.teacherEmail, required this.classCode, required this.teacherClasseModel
-  , required this.chapterName, required this.chapterId,
-    required this.chapterIndex,
-    required this.partIndex,
-    required this.surahNumber,
-    required this.classDocId,
-    required this.surahIndex,
-
-  }) : super(key: key);
+class ListenYourRecordingScreen extends StatefulWidget {
+  const ListenYourRecordingScreen({Key? key}) : super(key: key);
 
   @override
-  _StudentEvaluationScreenState createState() => _StudentEvaluationScreenState();
+  _ListenYourRecordingScreenState createState() => _ListenYourRecordingScreenState();
 }
 
-class _StudentEvaluationScreenState extends State<StudentEvaluationScreen> {
+class _ListenYourRecordingScreenState extends State<ListenYourRecordingScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  String name = '' , email = '';
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    print( 'This is teacher email ${widget.teacherEmail.toString()}');
-    getData();
-    super.initState();
-  }
-
-  getData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    FirebaseFirestore.instance.collection("StudentClasses").where("teacherEmail",isEqualTo: widget.teacherEmail.toString()).get().then((value) {
-     // print(value["teacherEmail"].toString());
-    });
-
-    FirebaseFirestore.instance.collection('Teachers').doc(prefs.getString('userId')!).get().then((value) {
-      print('Teachers get');
-      print(value.data());
-      setState(() {
-        email = value.data()!['email'].toString();
-        name = value.data()!['name'].toString();
-      });
-
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,11 +23,14 @@ class _StudentEvaluationScreenState extends State<StudentEvaluationScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: true,
         backgroundColor: primaryColor,
-        title: Text("Students"),
+        title: Text("Recordings"),
         centerTitle: true,
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection("StudentClasses").where("classCode",isEqualTo: widget.classCode.toString()).snapshots(),
+        stream: FirebaseFirestore.instance.collection("StudentEvaluatedSurah")
+            .where("studentUid",isEqualTo: _auth.currentUser!.uid.toString())
+            .where("recordingStarted",isEqualTo: "yes")
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             print(" we are here 3");
@@ -108,21 +63,21 @@ class _StudentEvaluationScreenState extends State<StudentEvaluationScreen> {
                           PageRouteBuilder(
                             pageBuilder: (c, a1, a2) =>
                                 AyahEvaluationScreen(
-                                  studentUid: snapshot.data!.docs[index]['uid'].toString(),
+                                  studentUid: snapshot.data!.docs[index]['studentUid'].toString(),
                                   studentName: snapshot.data!.docs[index]['studentName'].toString(),
-                                  surahNumber: widget.surahNumber,
-                                  surahName: widget.surahName,
-                                  surahAyhs: widget.surahAyhs,
-                                  way: "surah",
-                                  teacherEmail: email,
-                                  chapterName: widget.chapterName,
-                                  chapterId: widget.chapterId,
-                                  classDocId: widget.classDocId,
-                                  classCode: widget.classCode,
-                                  studentDocId: snapshot.data!.docs[index].id.toString(),
-                                  partIndex: widget.partIndex,
-                                  surahIndex: widget.surahIndex,
-                                  chapterIndex: widget.chapterIndex,
+                                  surahNumber: snapshot.data!.docs[index]['surahNumber'].toString(),
+                                  surahName: snapshot.data!.docs[index]['surahName'].toString(),
+                                  surahAyhs: getVerseCount(int.parse(snapshot.data!.docs[index]['surahNumber'].toString())).toString(), //snapshot.data!.docs[index]['studentUid'].toString(),
+                                  way: "studentRecording",
+                                  surahIndex: index,
+                                  teacherEmail: snapshot.data!.docs[index]['teacherEmail'].toString(),
+                                  chapterName: snapshot.data!.docs[index]['studentUid'].toString(),
+                                  chapterId: snapshot.data!.docs[index]['chapterId'].toString(),
+                                  classDocId: snapshot.data!.docs[index]['studentUid'].toString(),
+                                  classCode: snapshot.data!.docs[index]['classCode'].toString(), // partNo
+                                  studentDocId: snapshot.data!.docs[index]['studentDocId'].toString(),//snapshot.data!.docs[index]['studentUid'].toString(),
+                                  partIndex: snapshot.data!.docs[index]['partNo'],
+                                  chapterIndex: snapshot.data!.docs[index]['chapterIndex']
                                 ),
                             transitionsBuilder: (c, anim, a2, child) =>
                                 FadeTransition(opacity: anim, child: child),
@@ -145,9 +100,10 @@ class _StudentEvaluationScreenState extends State<StudentEvaluationScreen> {
                                 backgroundImage: NetworkImage(
                                     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNDgyaDCaoDZJx8N9BBE6eXm5uXuObd6FPeg&usqp=CAU'),
                               ),
-                              SizedBox(height: 8,),
+                              SizedBox(height: 4,),
 
-                              Text(snapshot.data!.docs[index]['studentName'].toString()),
+                              Text(snapshot.data!.docs[index]['surahName'].toString()),
+                              Text(snapshot.data!.docs[index]['classCode'].toString(),style: TextStyle(fontSize: 10),),
                             ],
                           ),
                         ),
@@ -167,8 +123,6 @@ class _StudentEvaluationScreenState extends State<StudentEvaluationScreen> {
           // }
         },
       ),
-
-
 
     );
   }

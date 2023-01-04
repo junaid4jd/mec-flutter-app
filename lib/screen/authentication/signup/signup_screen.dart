@@ -560,6 +560,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   );
                                 }
                                 else {
+                                  print("we are here");
                                   FirebaseFirestore.instance
                                       .collection('Students')
                                       .doc(user.uid)
@@ -567,6 +568,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     "email": _emailControoler.text.trim(),
                                     "password": _passwordControoler.text.trim(),
                                     "uid": user.uid,
+                                    "studentStars": 0,
+                                    "studentCups": 0,
+                                    "studentBadges": 0,
                                     "name": _firstNameControoler.text +' ' + _lastNameControoler.text.toString(),
 
                                   }).then((value) => print('success'));

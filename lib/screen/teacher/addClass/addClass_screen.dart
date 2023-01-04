@@ -49,6 +49,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
 
   MethodsHandler _methodsHandler = MethodsHandler();
   List<Map<String, dynamic>> chapterList = [];
+  List<Map<String, dynamic>> chapterPartList = [];
   Map<String, dynamic> chapter1 = {
     "chap1": {
       "chapterId": "1",
@@ -200,9 +201,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
         chapterList.add({
           "chapterName": chap1,
           "chapterId": "1",
-          "part1Toggle": false,
-          "part2Toggle": false,
-          "part3Toggle": false,
           "content" : {
             "chapterId": "1",
             "chapterName": "جزء عم",
@@ -210,7 +208,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
           { "part1": [
             {
               "surahName": "112",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -225,7 +223,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
             },
             {
               "surahName": "113",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -241,7 +239,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
             },
             {
               "surahName": "114",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -252,13 +250,12 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "3","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "4","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "5","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "6","verseRecording": "1",},
                 ]
               }
             },
             {
               "surahName": "108",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -274,7 +271,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
           { "part2": [
             {
               "surahName": "97",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -290,7 +287,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
             },
             {
               "surahName": "95",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahLocked": "yes",
               "surahStars": "0",
               "surahGreenAyah": "0",
@@ -301,9 +298,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "3","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "4","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "5","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "6","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "7","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "8","verseRecording": "1",},
+
                 ]
               }
             },
@@ -311,7 +306,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
           { "part3": [
             {
               "surahName": "86",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -322,24 +317,12 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "3","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "4","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "5","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "6","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "7","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "8","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "9","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "10","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "11","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "12","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "13","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "14","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "15","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "16","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "17","verseRecording": "1",},
                 ]
               }
             },
             {
               "surahName": "87",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -350,20 +333,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "3","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "4","verseRecording": "1",},
                   {"verseColor": "Colors.grey", "evaluated": "no", "verse": "5","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "6","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "7","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "8","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "9","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "10","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "11","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "12","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "13","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "14","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "15","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "16","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "17","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "18","verseRecording": "1",},
-                  {"verseColor": "Colors.grey", "evaluated": "no", "verse": "19","verseRecording": "1",},
+
                 ]
               }
             },
@@ -371,6 +341,15 @@ class _AddClassScreenState extends State<AddClassScreen> {
         ],
           }
         });
+
+        chapterPartList.add({
+          "chapterId": "1",
+          "chapterName": chap1,
+          "part1Toggle": false,
+          "part2Toggle": false,
+          "part3Toggle": false,
+        });
+
       });
     }
   }
@@ -381,9 +360,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
         chapterList.add({
           "chapterName": chap2,
           "chapterId": "2",
-          "part1Toggle": false,
-          "part2Toggle": false,
-          "part3Toggle": false,
           "content" : {
             "chapterId": "2",
             "chapterName": "جزء تبارك",
@@ -391,7 +367,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
               { "part1": [
                 {
                   "surahName": "77",
-                  "surahRecording": "record",
+                  "surahRecording": "1",
                   "surahStars": "0",
                   "surahLocked": "yes",
                   "surahGreenAyah": "0",
@@ -407,7 +383,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 },
                 {
                   "surahName": "76",
-                  "surahRecording": "record",
+                  "surahRecording": "1",
                   "surahStars": "0",
                   "surahLocked": "yes",
                   "surahGreenAyah": "0",
@@ -418,7 +394,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                       {"verseColor": "Colors.grey", "evaluated": "no", "verse": "3","verseRecording": "1",},
                       {"verseColor": "Colors.grey", "evaluated": "no", "verse": "4","verseRecording": "1",},
                       {"verseColor": "Colors.grey", "evaluated": "no", "verse": "5","verseRecording": "1",},
-                      {"verseColor": "Colors.grey", "evaluated": "no", "verse": "6","verseRecording": "1",},
+
                     ]
                   }
                 },
@@ -427,7 +403,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 "part2": [
                   {
                     "surahName": "73",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -442,7 +418,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   },
                   {
                     "surahName": "72",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -461,7 +437,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
               "part3": [
                 {
                   "surahName": "69",
-                  "surahRecording": "record",
+                  "surahRecording": "1",
                   "surahStars": "0",
                   "surahLocked": "yes",
                   "surahGreenAyah": "0",
@@ -472,14 +448,12 @@ class _AddClassScreenState extends State<AddClassScreen> {
                       {"verseColor": "Colors.grey", "evaluated": "no", "verse": "3","verseRecording": "1",},
                       {"verseColor": "Colors.grey", "evaluated": "no", "verse": "4","verseRecording": "1",},
                       {"verseColor": "Colors.grey", "evaluated": "no", "verse": "5","verseRecording": "1",},
-                      {"verseColor": "Colors.grey", "evaluated": "no", "verse": "6","verseRecording": "1",},
-                      {"verseColor": "Colors.grey", "evaluated": "no", "verse": "7","verseRecording": "1",},
                     ]
                   }
                 },
                 {
                   "surahName": "67",
-                  "surahRecording": "record",
+                  "surahRecording": "1",
                   "surahStars": "0",
                   "surahLocked": "yes",
                   "surahGreenAyah": "0",
@@ -498,6 +472,13 @@ class _AddClassScreenState extends State<AddClassScreen> {
             ]
           }
         });
+        chapterPartList.add({
+          "chapterId": "2",
+          "chapterName": chap2,
+          "part1Toggle": false,
+          "part2Toggle": false,
+          "part3Toggle": false,
+        });
       });
     }
   }
@@ -508,9 +489,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
         chapterList.add({
           "chapterName": chap3,
           "chapterId": "3",
-          "part1Toggle": false,
-          "part2Toggle": false,
-          "part3Toggle": false,
           "content" : {
             "chapterId": "1",
             "chapterName": "جزء عم",
@@ -518,7 +496,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
           { "part1": [
             {
               "surahName": "66",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -533,7 +511,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
             },
             {
               "surahName": "65",
-              "surahRecording": "record",
+              "surahRecording": "1",
               "surahStars": "0",
               "surahLocked": "yes",
               "surahGreenAyah": "0",
@@ -551,7 +529,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
             "part2": [
               {
                 "surahName": "62",
-                "surahRecording": "record",
+                "surahRecording": "1",
                 "surahStars": "0",
                 "surahLocked": "yes",
                 "surahGreenAyah": "0",
@@ -566,7 +544,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
               },
               {
                 "surahName": "61",
-                "surahRecording": "record",
+                "surahRecording": "1",
                 "surahStars": "0",
                 "surahLocked": "yes",
                 "surahGreenAyah": "0",
@@ -585,7 +563,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
             "part3": [
               {
                 "surahName": "59",
-                "surahRecording": "record",
+                "surahRecording": "1",
                 "surahStars": "0",
                 "surahLocked": "yes",
                 "surahGreenAyah": "0",
@@ -600,7 +578,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
               },
               {
                 "surahName": "58",
-                "surahRecording": "record",
+                "surahRecording": "1",
                 "surahStars": "0",
                 "surahLocked": "yes",
                 "surahGreenAyah": "0",
@@ -618,6 +596,15 @@ class _AddClassScreenState extends State<AddClassScreen> {
         ],
           }
         });
+
+        chapterPartList.add({
+          "chapterId": "3",
+          "chapterName": chap3,
+          "part1Toggle": false,
+          "part2Toggle": false,
+          "part3Toggle": false,
+        });
+
       });
     }
   }
@@ -628,9 +615,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
         chapterList.add({
           "chapterName": chap4,
           "chapterId": "4",
-          "part1Toggle": false,
-          "part2Toggle": false,
-          "part3Toggle": false,
           "content" : {
             "chapterId": "1",
             "chapterName": "جزء عم",
@@ -640,7 +624,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 "part1": [
                   {
                     "surahName": "57",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -655,7 +639,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   },
                   {
                     "surahName": "56",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -674,7 +658,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 "part2": [
                   {
                     "surahName": "55",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -689,7 +673,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   },
                   {
                     "surahName": "54",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -708,7 +692,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 "part3": [
                   {
                     "surahName": "52",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -723,7 +707,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   },
                   {
                     "surahName": "51",
-                    "surahRecording": "record",
+                    "surahRecording": "1",
                     "surahStars": "0",
                     "surahLocked": "yes",
                     "surahGreenAyah": "0",
@@ -741,6 +725,13 @@ class _AddClassScreenState extends State<AddClassScreen> {
             ],
           }
         });
+        chapterPartList.add({
+          "chapterId": "4",
+          "chapterName": chap4,
+          "part1Toggle": false,
+          "part2Toggle": false,
+          "part3Toggle": false,
+        });
       });
     }
   }
@@ -748,6 +739,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
   getChapterList() {
     setState(() {
       chapterList.clear();
+      chapterPartList.clear();
     });
     addChap1();
     addChap2();
@@ -1164,6 +1156,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                                 "teacherUid": uid,
                                 "classGrade": dropdownvalue.toString(),
                                 "chapList": chapterList,
+                                "chapPartList": chapterPartList,
                                 "chapterToggle1": false,
                                 "chapterToggle2": false,
                                 "chapterToggle3": false,

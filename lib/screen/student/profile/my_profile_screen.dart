@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mec/constants.dart';
 import 'package:mec/screen/student/leatherBoard/leather_board_screen.dart';
+import 'package:mec/screen/student/listenRecording/listen_your_recording.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,13 +18,51 @@ class StudentProfileScreen extends StatefulWidget {
 
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   String name = '' , email = '';
   String text = '';
   String subject = '';
+  double starsRating = 0.0;
+  double badgeRating = 0.0;
+  double cupsRating = 0.0;
+
+  int totalStars = 0;
+  int totalBadges = 0;
+  int totalCups = 0;
+  getStudentData() async {
+    setState(() {
+      totalStars = 0;
+      totalBadges = 0;
+      totalCups = 0;
+    });
+
+    FirebaseFirestore.instance.collection("Students").doc(_auth.currentUser!.uid.toString()).get().then((value) {
+
+      setState(() {
+        totalStars = value["studentStars"];
+        totalBadges = value["studentBadges"];
+        totalCups = value["studentCups"];
+      });
+
+
+
+      setState(() {
+        starsRating = (totalStars/1000);
+        badgeRating = (totalBadges/1000);
+        cupsRating = (totalCups/1000);
+      });
+
+      print(starsRating);
+      print(badgeRating);
+      print(cupsRating);
+
+    });
+  }
 
   @override
   void initState() {
     // TODO: implement initState
+    getStudentData();
     getData();
     super.initState();
   }
@@ -135,9 +175,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     child: LinearPercentIndicator(
                       width: size.width*0.55,//180.0,
                       lineHeight: 14.0,
-                      percent: 0.85,
+                      percent: starsRating,
                       leading: new Text("0 "),
-                      trailing: new Text("100"),
+                      trailing: new Text("1000"),
                       backgroundColor: greyColor,
                       progressColor: Colors.blue,
                     ),
@@ -164,9 +204,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     child: LinearPercentIndicator(
                       width: size.width*0.55,//180.0,
                       lineHeight: 14.0,
-                      percent: 0.35,
+                      percent: badgeRating,
                       leading: new Text("0 "),
-                      trailing: new Text("100"),
+                      trailing: new Text("1000"),
                       backgroundColor: greyColor,
                       progressColor: Colors.blue,
                     ),
@@ -193,9 +233,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     child: LinearPercentIndicator(
                       width: size.width*0.55,//180.0,
                       lineHeight: 14.0,
-                      percent: 0.25,
+                      percent: cupsRating,
                       leading: new Text("0 "),
-                      trailing: new Text("100"),
+                      trailing: new Text("1000"),
                       backgroundColor: greyColor,
                       progressColor: Colors.blue,
                     ),
@@ -219,21 +259,15 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      // Navigator.push(
-                      //   context,
-                      //   PageRouteBuilder(
-                      //     pageBuilder: (c, a1, a2) =>
-                      //         StudentEvaluationScreen(
-                      //           surahName: "الْإِخْلَاص",
-                      //           surahAyhs: "4",
-                      //           way: "surah",
-                      //           teacherEmail: email,
-                      //         ),
-                      //     transitionsBuilder: (c, anim, a2, child) =>
-                      //         FadeTransition(opacity: anim, child: child),
-                      //     transitionDuration: Duration(milliseconds: 0),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (c, a1, a2) => ListenYourRecordingScreen(),
+                          transitionsBuilder: (c, anim, a2, child) =>
+                              FadeTransition(opacity: anim, child: child),
+                          transitionDuration: Duration(milliseconds: 0),
+                        ),
+                      );
                     },
                     child: Container(
                       width: size.width*0.6,

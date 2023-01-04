@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mec/constants.dart';
@@ -11,8 +12,12 @@ import 'package:mec/screen/student/studentSurah/student_surahs_screen.dart';
 class StudentHomeScreen extends StatefulWidget {
   final String userType;
   final int index;
+  final int chapterIndex;
+  final int classIndex;
   final String classCode;
-  const StudentHomeScreen({Key? key, required this.userType, required this.index, required this.classCode}) : super(key: key);
+  const StudentHomeScreen({Key? key,
+    required this.userType,
+    required this.index, required this.classCode, required this.chapterIndex, required this.classIndex}) : super(key: key);
 
   @override
   State<StudentHomeScreen> createState() => _StudentHomeScreenState();
@@ -20,6 +25,7 @@ class StudentHomeScreen extends StatefulWidget {
 
 class _StudentHomeScreenState extends State<StudentHomeScreen> {
   int _selectedIndex = 0;
+
   List<Widget> _pages = [
     StudentClassScreen(),
     StudentPracticeScreen(),
@@ -38,15 +44,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     if (widget.index == 4) {
       setState(() {
         _selectedIndex = 0;
-        _pages[0] = StudentClassChapScreen(classCode: widget.classCode.toString(),);
+        _pages[0] = StudentClassChapScreen(classCode: widget.classCode.toString(), chapterIndex: widget.chapterIndex, classDocId: widget.userType,);
       });
     }
-    else if (widget.index == 6) {
-      setState(() {
-        _selectedIndex = 0;
-        _pages[0] = StudentSurahScreen(classCode: widget.classCode,);
-      });
-    }
+    // else if (widget.index == 6) {
+    //   setState(() {
+    //     _selectedIndex = 0;
+    //     _pages[0] = StudentSurahScreen(classCode: widget.classCode,chapterIndex: widget.chapterIndex);
+    //   });
+    // }
     else if (widget.index == 5) {
       setState(() {
         _selectedIndex = 2;
@@ -55,6 +61,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     }
     super.initState();
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {

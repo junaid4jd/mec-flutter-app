@@ -311,6 +311,7 @@ class _StudentPracticeScreenState extends State<StudentPracticeScreen> {
                                       if(playAyahIndex) {
                                         playAyah();
                                       } else {
+
                                         setState(() {
                                           assetsAudioPlayer.stop();
                                         });
@@ -332,7 +333,6 @@ class _StudentPracticeScreenState extends State<StudentPracticeScreen> {
                                   SizedBox(
                                     width: 10,
                                   ),
-
                                   Container(
                                     width: 25,
                                     height: 25,

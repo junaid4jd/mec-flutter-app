@@ -20,7 +20,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return WillPopScope(
+    return
+      WillPopScope(
       onWillPop: showExitPopup,
       child: Scaffold(
 
