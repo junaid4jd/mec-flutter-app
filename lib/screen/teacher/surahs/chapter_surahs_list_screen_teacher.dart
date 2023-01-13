@@ -47,7 +47,7 @@ class _TeacherSurahListScreenState extends State<TeacherSurahListScreen> {
     getChapPart();
     print('we are in teacher surah list');
     print(widget.teacherClasseModel.chapPartList!.length);
-    print(widget.teacherClasseModel.chapPartList![int.parse(widget.chapterId.toString())-1].part1Toggle);
+    //print(widget.teacherClasseModel.chapPartList![int.parse(widget.chapterId.toString())-1].part1Toggle);
     setState(() {
       isLoading = false;
       studentsUpdated = 'no';

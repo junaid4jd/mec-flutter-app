@@ -73,7 +73,8 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
 
   String _mPath = 'tau_file.mp4';
   String recordingUrl = '';
-  int countGreen = 0, evaluatedSurah = 0;
+  String evaluatedSurahCheck = 'no';
+  int countGreen = 0, evaluatedSurah = 0,  y=0;
   FlutterSoundPlayer? _mPlayer = FlutterSoundPlayer();
   FlutterSoundRecorder? _mRecorder = FlutterSoundRecorder();
   bool _mPlayerIsInited = false;
@@ -97,13 +98,19 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
       studentUid = '';
   bool isLoading = false;
   List<Map<String, dynamic>> surahVerses = [];
-  List<dynamic> evaluatedChapterList = [];
-  List<dynamic> evaluatedChapterList2 = [];
+  List<Map<String, dynamic>> evaluatedChapterList = [];
+  List<Map<String, dynamic>> chapListEvaluated = [];
+
+  List<Map<String, dynamic>>  evaluatedChapterList2 = [];
   // List<SurahVerse>? surahVerses;
   @override
   void initState() {
+    //checkListChapLength();
+    doesSurahCompleted();
+    //checkListChapLength();
     setState(() {
       studentsTableDocId = "";
+      evaluatedSurahCheck = 'no';
       evaluatedChapterList.clear();
       evaluatedChapterList2.clear();
       isChpEvaluated = "no";
@@ -141,10 +148,66 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
         _mRecorderIsInited = true;
       });
     });
-
     //evaluateChapters();
 
     super.initState();
+  }
+
+
+  checkListChapLength() async {
+    setState(() {
+      y=6;
+    });
+    print("Classes checkListChapLength ");
+    FirebaseFirestore.instance
+        .collection("Classes")
+        .doc(widget.classDocId)
+        .get()
+        .then((value) {
+          print("In Class");
+
+      for(int i=0 ;i<value["chapList"].length;i++) {
+
+        print(value["chapList"][i]["chapterId"].toString());
+
+        setState(() {
+          chapListEvaluated.add(
+              {
+                "classCode": widget.classCode,
+                "chapterId": value["chapList"][i]["chapterId"].toString(),
+                "chapterName": value["chapList"][i]["chapterName"].toString(),
+                "isChpEvaluated": "no",
+                "isPartOneEvaluated": "no",
+                "isPartTwoEvaluated": "no",
+                "isPartThreeEvaluated": "no",
+              }
+
+          );
+        });
+      }
+
+      FirebaseFirestore.instance
+          .collection("StudentChapterEvaluation")
+          .where("classCode", isEqualTo:widget.classCode)
+          .get()
+          .then((valueChap) {
+
+            if(valueChap.docs[0]["chapEvaluationList"].length ==   value["chapList"].length) {
+              print("Both length List Equals");
+            } else {
+              print("List Not Equals");
+
+              FirebaseFirestore.instance
+                  .collection("StudentChapterEvaluation")
+                  .doc(valueChap.docs[0].id.toString())
+                  .update({
+                "chapEvaluationList":chapListEvaluated,
+              }).then((value) {
+                print("chapEvaluationList updated");
+              });
+            }
+      });
+    });
   }
 
   getSurahVerses() async {
@@ -308,28 +371,6 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
     }
   }
 
-  // upload(File fil)async{
-  //   print('we are in upload file ');
-  //   String fileName = fil.path
-  //       .split('/')
-  //       .last;
-  //   Reference  firebaseStorageRef =
-  //   FirebaseStorage.instance.ref().child('uploads/$fileName');
-  //   UploadTask  uploadTask = firebaseStorageRef.putFile(fil);
-  //   uploadTask.whenComplete(() {
-  //      firebaseStorageRef.getDownloadURL().then((value) {
-  //        setState(() {
-  //          recordingUrl = value.toString();
-  //        });
-  //        print('This is url');
-  //        print(value.toString());
-  //        print(value.toString());
-  //      });
-  //   }).catchError((onError) {
-  //     print(onError);
-  //   });
-  // }
-
   void play() {
     assert(_mPlayerIsInited &&
         _mplaybackReady &&
@@ -382,21 +423,10 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
         studentName = value["studentName"].toString();
         studentUid = value["uid"].toString();
       });
+
       getStudentChapterDoc();
-      FirebaseFirestore.instance
-          .collection("Students")
-          .where("uid", isEqualTo: studentUid)
-          .get()
-          .then((value) {
-        print("studentCups");
-        print(value.docs[0]["studentCups"]);
-        print(value.docs[0]["studentBadges"]);
-        setState(() {
-          studentsTableDocId = value.docs[0].id.toString();
-          totalCups = value.docs[0]["studentCups"];
-          totalBadges = value.docs[0]["studentBadges"];
-        });
-      });
+      getTheFullChapList();
+
     });
   }
 
@@ -413,7 +443,60 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
     });
   }
 
+  doesSurahCompleted() async {
+
+    FirebaseFirestore.instance
+        .collection("StudentEvaluatedSurah")
+        .where("surahNumber", isEqualTo: widget.surahNumber)
+        .get()
+        .then((value) {
+
+          if(value.docs.isNotEmpty) {
+            if(value.docs[0]["surahCompleted"].toString() == "yes")
+            {
+              print("Already this ayah surah completed");
+              setState(() {
+                evaluatedSurahCheck = "yes";
+              });
+
+            }
+            else {
+              setState(() {
+                evaluatedSurah =0;
+              });
+              print("This ayah surah not completed");
+
+              print(value.docs[0]["surahVerses"].toList() );
+              print(value.docs[0]["surahVerses"][0]["evaluated"].toString() );
+              for (int i = 0; i < value.docs[0]["surahVerses"].length; i++) {
+                print("In Loop i=$i evaluated=${value.docs[0]["surahVerses"][i]["evaluated"].toString()} ");
+                if (value.docs[0]["surahVerses"][i]["evaluated"].toString() == "yes") {
+                  setState(() {
+                    evaluatedSurah = evaluatedSurah + 1;
+                  });
+                  //  print("In Condition evaluated $evaluatedSurah == ${widget.surahAyhs}");
+                  if(evaluatedSurah.toString() == widget.surahAyhs) {
+                    print(" evaluated $evaluatedSurah == ${widget.surahAyhs} True");
+                    //print(" ${evaluatedSurah == widget.surahAyhs} now this ayah surah completed");
+                    setState(() {
+                      evaluatedSurahCheck = "yes";
+                    });
+                  }
+                }
+              }
+            }
+          }
+
+
+    });
+
+  }
+
   Future getFinalData() async {
+
+
+
+
     if (isAlreadyRecordingPresent != true && selectedIndexColor == "Green") {
       setState(() {
         countGreen = countGreen + 1;
@@ -430,148 +513,219 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
       };
     });
 
-    for (int i = 0; i < surahVerses.length; i++) {
-      if (surahVerses[i]["evaluated"] == "yes") {
-        setState(() {
-          evaluatedSurah = evaluatedSurah + 1;
-        });
+
+
+
+
+
+    if(evaluatedSurahCheck == "yes")
+    {
+
+      print("Already this ayah surah completed");
+
+    }
+    else {
+
+      print("This ayah surah not completed");
+
+      for (int i = 0; i < surahVerses.length; i++) {
+        if (surahVerses[i]["evaluated"] == "yes") {
+          setState(() {
+            evaluatedSurah = evaluatedSurah + 1;
+          });
+
+          if(evaluatedSurah.toString() == widget.surahAyhs) {
+            print(" evaluated $evaluatedSurah == ${widget.surahAyhs} True");
+            //print(" ${evaluatedSurah == widget.surahAyhs} now this ayah surah completed");
+            setState(() {
+              evaluatedSurahCheck = "yes";
+            });
+          }
+
+        }
       }
+
+
+    }
+
+
+
+
+  }
+
+  checkPartOneChapOne() {
+    print(evaluatedChapterList.length.toString() + ' List Length evaluatedChapterList IN Chap One');
+    print(evaluatedChapterList.toList() );
+
+    if (partOneBadgeCount == 4 && isPartOneEvaluated == 'no') {
+      setState(() {
+        isPartOneEvaluated = 'yes';
+        totalBadges = totalBadges + 1;
+      });
+      print('we are in partOne $isPartOneEvaluated $totalBadges');
+
+      checkPartTwo();
+
+    } else {
+
+
+
+      checkPartTwo();
+      print('else 2 chapter ${widget.chapterId} we are in part 1 $isPartOneEvaluated $totalBadges');
+
     }
   }
+  checkPartOneChap234() {
 
-  getBadges() async {
-    print("getBadges start");
-    setState(() {
-      partOneBadgeCount = 0;
-      partTwoBadgeCount = 0;
-      partThreeBadgeCount = 0;
-    });
+    if (partOneBadgeCount == 2 && isPartOneEvaluated == 'no') {
+      setState(() {
+        isPartOneEvaluated = 'yes';
+        totalBadges = totalBadges + 1;
+      });
+      print('we are in partOne $isPartOneEvaluated $totalBadges');
 
+      checkPartTwo();
+
+    } else {
+
+
+
+      checkPartTwo();
+      print('else 2 chapter ${widget.chapterId} we are in part 1 $isPartOneEvaluated $totalBadges');
+
+    }
+  }
+  checkPartTwo() {
+    if (partTwoBadgeCount == 2 && isPartTwoEvaluated == 'no') {
+      setState(() {
+        isPartTwoEvaluated = 'yes';
+        totalBadges = totalBadges + 1;
+      });
+      print('if 2 chapter ${widget.chapterId} we are in part 2 $isPartTwoEvaluated $totalBadges');
+      checkPartThree();
+    } else {
+
+
+
+      checkPartThree();
+      print('else 2 chapter ${widget.chapterId} we are in part 2 $isPartTwoEvaluated $totalBadges');
+
+    }
+  }
+  checkPartThree() {
+
+    if (partThreeBadgeCount == 2 &&
+        isPartThreeEvaluated == 'no') {
+      setState(() {
+        isPartThreeEvaluated = 'yes';
+        totalBadges = totalBadges + 1;
+      });
+      print(
+          'if chapter ${widget.chapterId} we are in part 3 $isPartThreeEvaluated $totalBadges');
+      checkChapEvaluated();
+    } else {
+      checkChapEvaluated();
+      print('else chapter ${widget.chapterId} we are in part 3 $isPartThreeEvaluated $totalBadges');
+    }
+  }
+  checkChapEvaluated() {
+
+    if (isChpEvaluated == "no" &&
+        (isPartOneEvaluated == "yes" &&
+            isPartTwoEvaluated == "yes" &&
+            isPartThreeEvaluated == "yes")) {
+      print(
+          'we are in chapter part  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
+      setState(() {
+        isChpEvaluated = "yes";
+        totalCups = totalCups + 1;
+      });
+      getTheListAndUploadResults();
+
+    } else {
+      getTheListAndUploadResults();
+      print(
+          'Sorry Every Condition is false  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
+    }
+
+  }
+  Future evaluateChapters() async {
     FirebaseFirestore.instance
-        .collection('StudentEvaluatedSurah')
-        .where('classCode', isEqualTo: widget.classCode.toString())
-        .where('studentUid', isEqualTo: studentUid)
-        .where('chapterId', isEqualTo: widget.chapterId)
+        .collection("Students")
+        .where("uid", isEqualTo: studentUid)
         .get()
         .then((value) {
-      if (value.docs.isNotEmpty) {
-        print("getBadges inside");
-        for (int i = 0; i < value.docs.length; i++) {
-          if (value.docs[i]['surahCompleted'].toString() == 'yes' &&
-              value.docs[i]['partNo'] == 0) {
-            print(value.docs[i]['surahName'].toString() + ' Completed surah');
-            setState(() {
-              partOneBadgeCount = partOneBadgeCount + 1;
-            });
-          } else if (value.docs[i]['surahCompleted'].toString() == 'yes' &&
-              value.docs[i]['partNo'] == 1) {
-            setState(() {
-              partTwoBadgeCount = partTwoBadgeCount + 1;
-            });
-          } else if (value.docs[i]['surahCompleted'].toString() == 'yes' &&
-              value.docs[i]['partNo'] == 2) {
-            setState(() {
-              partThreeBadgeCount = partThreeBadgeCount + 1;
-            });
-          }
+      print("studentCups");
+      print(value.docs[0]["studentCups"]);
+      print(value.docs[0]["studentBadges"]);
+      setState(() {
+        studentsTableDocId = value.docs[0].id.toString();
+        totalCups = value.docs[0]["studentCups"];
+        totalBadges = value.docs[0]["studentBadges"];
+      });
+      print("studentCups $totalCups StudentBadges $totalBadges   studentsTableDocId $studentsTableDocId");
 
-          if (i == value.docs.length) {
-            print("getBadges inside $i is EqualTo ${value.docs.length}");
-            evaluateChapters();
-          }
-        }
-      } else {
-        print('doc is empty');
-      }
     });
-    //     .whenComplete(() {
-    //   print("getBadges whenComplete");
-    //   setState(() {
-    //     isLoading = false;
-    //   });
-    //   Fluttertoast.showToast(
-    //     msg: "Successfully evaluated ayah ${widget.currentAya+1} of surah ${widget.surahName}",
-    //     toastLength: Toast.LENGTH_SHORT,
-    //     gravity: ToastGravity.BOTTOM,
-    //     timeInSecForIosWeb: 4,
-    //   );
-    //   Navigator.pop(context);
-    // });
-    //     .whenComplete(() {
-    //   evaluateChapters();
-    // });
-    print("getBadges end");
-  }
 
-  Future evaluateChapters() async {
-    print('we are in chapter Evaluate');
+
+    print('we are in chapter Evaluate ${widget.chapterId.toString()}');
+
+
+
     FirebaseFirestore.instance
         .collection('StudentChapterEvaluation')
         .where('classCode', isEqualTo: widget.classCode.toString())
         .where('uid', isEqualTo: studentUid)
         .get()
         .then((value) {
-      setState(() {
-        evaluatedChapterList.clear();
-      });
+
       if (value.docs.isNotEmpty) {
         print(
             'chapEvaluationList chapEvaluatedListDocId $chapEvaluatedListDocId');
         if (value.docs[0]['chapEvaluationList'].isNotEmpty) {
+
+          print('List is not empty');
+
           for (int i = 0; i < value.docs[0]['chapEvaluationList'].length; i++) {
-            setState(() {
-              evaluatedChapterList.add({
-                "classCode": widget.classCode,
-                "chapterId": widget.chapterId,
-                "chapterName": widget.chapterName,
-                "isChpEvaluated": value.docs[0]['chapEvaluationList'][i]
-                    ['isChpEvaluated'],
-                "isPartOneEvaluated": value.docs[0]['chapEvaluationList'][i]
-                    ['isPartOneEvaluated'],
-                "isPartTwoEvaluated": value.docs[0]['chapEvaluationList'][i]
-                    ['isPartTwoEvaluated'],
-                "isPartThreeEvaluated": value.docs[0]['chapEvaluationList'][i]
-                    ['isPartThreeEvaluated'],
-              });
-            });
-            if (value.docs[0]['chapEvaluationList'][i]['chapterId'] ==
-                    widget.chapterId &&
-                value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'] ==
-                    'no') {
+
+            print('we are in loop');
+            print(value.docs[0]['chapEvaluationList'][i]['chapterId'].toString());
+            print(value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'].toString());
+
+            if (value.docs[0]['chapEvaluationList'][i]['chapterId'].toString() == widget.chapterId.toString() &&
+                value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'].toString() == 'no') {
               print('we are in chapter Evaluate loop $i and condition matched');
               setState(() {
                 currentListIndex = i;
-                isChpEvaluated =
-                    value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'];
-                isPartOneEvaluated = value.docs[0]['chapEvaluationList'][i]
-                    ['isPartOneEvaluated'];
-                isPartTwoEvaluated = value.docs[0]['chapEvaluationList'][i]
-                    ['isPartTwoEvaluated'];
-                isPartThreeEvaluated = value.docs[0]['chapEvaluationList'][i]
-                    ['isPartThreeEvaluated'];
+                isChpEvaluated = value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'];
+                isPartOneEvaluated = value.docs[0]['chapEvaluationList'][i]['isPartOneEvaluated'];
+                isPartTwoEvaluated = value.docs[0]['chapEvaluationList'][i]['isPartTwoEvaluated'];
+                isPartThreeEvaluated = value.docs[0]['chapEvaluationList'][i]['isPartThreeEvaluated'];
               });
+
+
               if (widget.chapterId == '1') {
                 print('we are in chapter 1 eva');
+
                 if (partOneBadgeCount == 4 && isPartOneEvaluated == 'no') {
-                  setState(() {
-                    isPartOneEvaluated = 'yes';
-                    totalBadges = totalBadges + 1;
-                  });
-                  print('we are in partOne $isPartOneEvaluated $totalBadges');
+                  checkPartOneChapOne();
+
                 } else {
+
                   if (partTwoBadgeCount == 2 && isPartTwoEvaluated == 'no') {
-                    setState(() {
-                      isPartTwoEvaluated = 'yes';
-                      totalBadges = totalBadges + 1;
-                    });
-                    print('we are in part 2 $isPartTwoEvaluated $totalBadges');
-                  } else {
+                    checkPartTwo();
+                  }
+                  else {
                     if (partThreeBadgeCount == 2 &&
                         isPartThreeEvaluated == 'no') {
-                      setState(() {
-                        isPartThreeEvaluated = 'yes';
-                        totalBadges = totalBadges + 1;
-                      });
+                      // setState(() {
+                      //   isPartThreeEvaluated = 'yes';
+                      //   totalBadges = totalBadges + 1;
+                      // });
+
+                      checkPartThree();
+
+
                       print(
                           'we are in part 3 $isPartThreeEvaluated $totalBadges');
                     } else {
@@ -579,58 +733,108 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                           (isPartOneEvaluated == "yes" &&
                               isPartTwoEvaluated == "yes" &&
                               isPartThreeEvaluated == "yes")) {
-                        print(
-                            'we are in chapter part  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
-                        setState(() {
-                          isChpEvaluated == "yes";
-                          totalCups = totalCups + 1;
-                        });
+                        // print(
+                        //     'we are in chapter part  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
+                        // setState(() {
+                        //   isChpEvaluated == "yes";
+                        //   totalCups = totalCups + 1;
+                        // });
+
+                        checkChapEvaluated();
+                        //getTheListAndUploadResults();
                       } else {
+                        checkChapEvaluated();
+
+                        //    getTheListAndUploadResults();
                         print(
                             'Sorry Every Condition is false  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
                       }
                     }
                   }
                 }
-              } else if (widget.chapterId == '2' ||
+              }
+              else if (widget.chapterId == '2' ||
                   widget.chapterId == '3' ||
                   widget.chapterId == '4') {
                 print('we are in chapter 2,3,4 eva');
                 if (partOneBadgeCount == 2 && isPartOneEvaluated == 'no') {
-                  setState(() {
-                    isPartOneEvaluated = 'yes';
-                    totalBadges = totalBadges + 1;
-                  });
+                  // setState(() {
+                  //   isPartOneEvaluated = 'yes';
+                  //   totalBadges = totalBadges + 1;
+                  // });
+                  checkPartOneChap234();
+
                 } else {
                   if (partTwoBadgeCount == 2 && isPartTwoEvaluated == 'no') {
-                    setState(() {
-                      isPartTwoEvaluated = 'yes';
-                      totalBadges = totalBadges + 1;
-                    });
+                    // setState(() {
+                    //   isPartTwoEvaluated = 'yes';
+                    //   totalBadges = totalBadges + 1;
+                    // });
+                    checkPartTwo();
+
+
                   } else {
                     if (partThreeBadgeCount == 2 &&
                         isPartThreeEvaluated == 'no') {
-                      setState(() {
-                        isPartThreeEvaluated = 'yes';
-                        totalBadges = totalBadges + 1;
-                      });
+                      // setState(() {
+                      //   isPartThreeEvaluated = 'yes';
+                      //   totalBadges = totalBadges + 1;
+                      // });
+                      checkPartThree();
                     } else {
                       if (isChpEvaluated == "no" &&
                           (isPartOneEvaluated == "yes" &&
                               isPartTwoEvaluated == "yes" &&
                               isPartThreeEvaluated == "yes")) {
-                        setState(() {
-                          isChpEvaluated == "yes";
-                          totalCups = totalCups + 1;
-                        });
+                        checkChapEvaluated();
+
+                        // setState(() {
+                        //   isChpEvaluated == "yes";
+                        //   totalCups = totalCups + 1;
+                        // });
+
                       } else {
+                        checkChapEvaluated();
+
+
+
                         print(" None of the above condition is true");
                       }
                     }
                   }
                 }
               }
+
+
             }
+            else {
+
+              if (value.docs[0]['chapEvaluationList'][i]['chapterId'].toString() == widget.chapterId.toString() &&
+                  value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'].toString() == 'yes') {
+
+                setState(() {
+                  i = value.docs[0]['chapEvaluationList'].length;
+                  isLoading = false;
+                });
+                Fluttertoast.showToast(
+                  msg:
+                  "Successfully evaluated ayah ${widget.currentAya + 1} of surah ${widget.surahName}",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 4,
+                );
+                Navigator.pop(context);
+
+              } else {
+
+                print(" We are repeating the loop $i");
+
+
+              }
+
+
+            }
+
           }
         }
       } else {
@@ -638,47 +842,84 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
       }
     });
 
-    //     .whenComplete(() {
-    //   getTheListAndUploadResults();
-    // });
+  }
+  getTheFullChapList() async {
+
+    FirebaseFirestore.instance
+        .collection('StudentChapterEvaluation')
+        .where('classCode', isEqualTo: widget.classCode.toString())
+        .where('uid', isEqualTo: studentUid)
+        .get()
+        .then((value) {
+
+      setState(() {
+        evaluatedChapterList.clear();
+      });
+
+      if (value.docs.isNotEmpty) {
+        print('chapEvaluationList Filling');
+        if (value.docs[0]['chapEvaluationList'].isNotEmpty) {
+          for (int i = 0; i < value.docs[0]['chapEvaluationList'].length; i++) {
+            setState(() {
+              evaluatedChapterList.add({
+                "classCode": value.docs[0]['chapEvaluationList'][i]['classCode'].toString(),
+                "chapterId": value.docs[0]['chapEvaluationList'][i]['chapterId'].toString(),
+                "chapterName": value.docs[0]['chapEvaluationList'][i]['chapterName'].toString(),
+                "isChpEvaluated": value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'].toString(),
+                "isPartOneEvaluated": value.docs[0]['chapEvaluationList'][i]['isPartOneEvaluated'].toString(),
+                "isPartTwoEvaluated": value.docs[0]['chapEvaluationList'][i]['isPartTwoEvaluated'].toString(),
+                "isPartThreeEvaluated": value.docs[0]['chapEvaluationList'][i]['isPartThreeEvaluated'].toString(),
+              });
+            });
+          }
+        }
+      }
+      else {
+        print('empty Doc');
+      }
+    });
+
   }
 
   Future getTheListAndUploadResults() async {
     print('we are in getTheListAndUploadResults');
+
+
     setState(() {
       evaluatedChapterList2.clear();
     });
 
-    for (int i = 0; i < evaluatedChapterList.length; i++) {
-      if (currentListIndex == i) {
+    for (int i = 0; i < evaluatedChapterList.length; i++)
+    {
+      if ( (evaluatedChapterList[i]['chapterName'].toString() == widget.chapterName) && ( evaluatedChapterList[i]['chapterId'].toString() == widget.chapterId)) {
         setState(() {
           evaluatedChapterList2.add({
             "classCode": widget.classCode,
             "chapterId": widget.chapterId,
             "chapterName": widget.chapterName,
-            "isChpEvaluated": isChpEvaluated,
-            "isPartOneEvaluated": isPartOneEvaluated,
-            "isPartTwoEvaluated": isPartTwoEvaluated,
-            "isPartThreeEvaluated": isPartThreeEvaluated,
+            "isChpEvaluated": isChpEvaluated.toString() == 'yes' ? 'yes' : 'no',
+            "isPartOneEvaluated": isPartOneEvaluated.toString() == 'yes' ? 'yes' : 'no',
+            "isPartTwoEvaluated": isPartTwoEvaluated.toString() == 'yes' ? 'yes' : 'no',
+            "isPartThreeEvaluated": isPartThreeEvaluated.toString() == 'yes' ? 'yes' : 'no',
           });
         });
       }
       else {
         setState(() {
           evaluatedChapterList2.add({
-            "classCode": widget.classCode,
-            "chapterId": widget.chapterId,
-            "chapterName": widget.chapterName,
-            "isChpEvaluated": evaluatedChapterList[i]['isChpEvaluated'],
-            "isPartOneEvaluated": evaluatedChapterList[i]['isPartOneEvaluated'],
-            "isPartTwoEvaluated": evaluatedChapterList[i]['isPartTwoEvaluated'],
-            "isPartThreeEvaluated": evaluatedChapterList[i]
-                ['isParThreeEvaluated'],
+            "classCode": evaluatedChapterList[i]['classCode'].toString(),
+            "chapterId": evaluatedChapterList[i]['chapterId'].toString(),
+            "chapterName": evaluatedChapterList[i]['chapterName'].toString(),
+            "isChpEvaluated": evaluatedChapterList[i]['isChpEvaluated'].toString() == 'yes' ? 'yes' : 'no',
+            "isPartOneEvaluated": evaluatedChapterList[i]['isPartOneEvaluated'].toString() == 'yes' ? 'yes' : 'no' ,
+            "isPartTwoEvaluated": evaluatedChapterList[i]['isPartTwoEvaluated'].toString() == 'yes' ? 'yes' : 'no',
+            "isPartThreeEvaluated": evaluatedChapterList[i]['isParThreeEvaluated'].toString() == 'yes' ? 'yes' : 'no',
           });
         });
       }
     }
     if (evaluatedChapterList2.length == evaluatedChapterList.length) {
+
       FirebaseFirestore.instance
           .collection('StudentChapterEvaluation')
           .doc(chapEvaluatedListDocId.toString())
@@ -691,7 +932,7 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
         "className": widget.classDocId.toString(),
         "teacherEmail": widget.teacherEmail,
       }).then((value) {
-        print("StudentChapterEvaluation Done");
+        print("StudentChapterEvaluation Done totalBadges $totalBadges and totalCups $totalCups " );
 
         FirebaseFirestore.instance
             .collection("Students")
@@ -714,18 +955,10 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
           );
           Navigator.pop(context);
 
-          // setState(() {
-          //   starLoading = false;
-          // });
-          // Navigator.of(context).pop();
-          // Fluttertoast.showToast(
-          //   msg: "Successfully Evaluated Surah ${widget.surahName}",
-          //   toastLength: Toast.LENGTH_SHORT,
-          //   gravity: ToastGravity.BOTTOM,
-          //   timeInSecForIosWeb: 4,
-          // );
         });
       });
+
+
     }
     else {
       print('List Length Issue Evaluation');
@@ -734,6 +967,11 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
 
   @override
   Widget build(BuildContext context) {
+
+    // if(y==5) {
+    //   checkListChapLength();
+    // }
+
     //if()
     print(widget.currentAya.toString() + ' This is no');
     //print(surahVerses[0].toString() + ' This is no');
@@ -926,7 +1164,8 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                         timeInSecForIosWeb: 4,
                       );
                     } else {
-                      String docId = "", surahStars = "";
+                      String docId = "";
+                         int surahStars = 0;
                       print("Color Selected and recorded");
                       setState(() {
                         isLoading = true;
@@ -935,6 +1174,7 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                       final snapshot = await FirebaseFirestore.instance
                           .collection('StudentEvaluatedSurah')
                           .get();
+
                       snapshot.docs.forEach((element) {
                         print('user data');
                         if (element['surahNumber'] ==
@@ -952,6 +1192,7 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                       if (isClassNameExist == 'yes') {
                         await getFinalData().whenComplete(() {
                           print(countGreen.toString() + " Final Count green");
+                          print( "Surah Alreday exists Final Count green");
                           FirebaseFirestore.instance
                               .collection("StudentEvaluatedSurah")
                               .doc(docId.toString())
@@ -969,16 +1210,14 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                               "chapterIndex": widget.chapterIndex,
                               "partNo": widget.partIndex,
                               "surahCompleted":
-                                  evaluatedSurah.toString() == widget.surahAyhs
-                                      ? "yes"
-                                      : "no",
+                              evaluatedSurahCheck == "yes" && (evaluatedSurah.toString() == widget.surahAyhs)  ? "yes" :  "no",
                               "surahRecording": "1",
-                              "surahStars": surahStars,
+                              "surahStars": surahStars.toInt(),
                               "surahGreenAyah": countGreen.toString(),
                               "surahVerses": surahVerses
                             },
                           ).then((value) {
-                            print("getBadges start");
+                            print("getBadges start done");
                             setState(() {
                               partOneBadgeCount = 0;
                               partTwoBadgeCount = 0;
@@ -993,313 +1232,72 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                                 .where('chapterId', isEqualTo: widget.chapterId)
                                 .get()
                                 .then((value) {
-                              if (value.docs.isNotEmpty) {
+
+                              print("get data start ${value.docs.length}");
+                              int listL = 0;
+                                  if (value.docs.isNotEmpty) {
+
+
                                 print("getBadges inside");
                                 for (int i = 0; i < value.docs.length; i++) {
-                                  if (value.docs[i]['surahCompleted']
-                                              .toString() ==
-                                          'yes' &&
-                                      value.docs[i]['partNo'] == 0) {
-                                    print(
-                                        value.docs[i]['surahName'].toString() +
-                                            ' Completed surah');
+
+                                  setState(() {
+                                    listL = i;
+                                  });
+
+                                  if (value.docs[i]['surahCompleted'].toString() == 'yes' && value.docs[i]['partNo'] == 0) {
+                                    print(value.docs[i]['surahName'].toString() + ' Completed surah');
                                     setState(() {
                                       partOneBadgeCount = partOneBadgeCount + 1;
                                     });
-                                  } else if (value.docs[i]['surahCompleted']
-                                              .toString() ==
-                                          'yes' &&
+                                    print('Part One Badge count $partOneBadgeCount');
+                                  }
+                                  else {
+                                  //  print('else Part One Badge count $partOneBadgeCount');
+                                  }
+
+                                  if (value.docs[i]['surahCompleted']
+                                      .toString() ==
+                                      'yes' &&
                                       value.docs[i]['partNo'] == 1) {
                                     setState(() {
                                       partTwoBadgeCount = partTwoBadgeCount + 1;
                                     });
-                                  } else if (value.docs[i]['surahCompleted']
-                                              .toString() ==
-                                          'yes' &&
-                                      value.docs[i]['partNo'] == 2) {
+                                    print('Part Two Badge count $partTwoBadgeCount');
+                                  }
+                                  else {
+                                    //print('else Part Two Badge count $partTwoBadgeCount');
+                                  }
+
+
+                               if (value.docs[i]['surahCompleted']
+                                      .toString() ==
+                                      'yes' &&
+                                      value.docs[i]['partNo'] == 2)
+                               {
                                     setState(() {
                                       partThreeBadgeCount =
                                           partThreeBadgeCount + 1;
                                     });
+                                    print('Part Three Badge count $partThreeBadgeCount');
                                   }
+                               else {
+                                // print('else Part Three Badge count $partThreeBadgeCount');
+                               }
+                                }
+                              }
+                                  else {
+                                print('doc is empty');
+                              }
 
-                                  if (i == (value.docs.length - 1)) {
+                                  if(listL == value.docs.length-1) {
+                                    print('$listL and value data length ${value.docs.length}');
                                     print(partOneBadgeCount);
                                     print(partTwoBadgeCount);
                                     print(partThreeBadgeCount);
-                                    print(
-                                        "getBadges inside $i is EqualTo ${value.docs.length}");
                                     evaluateChapters();
-                                  } else {
-                                    print(
-                                        "getBadges inside $i is not EqualTo ${value.docs.length}");
                                   }
-                                }
-                              } else {
-                                print('doc is empty');
-                              }
                             });
-
-                            print('we are in chapter Evaluate');
-                            FirebaseFirestore.instance
-                                .collection('StudentChapterEvaluation')
-                                .where('classCode',
-                                    isEqualTo: widget.classCode.toString())
-                                .where('uid', isEqualTo: studentUid)
-                                .get()
-                                .then((value) {
-                              setState(() {
-                                evaluatedChapterList.clear();
-                              });
-                              if (value.docs.isNotEmpty) {
-                                print(
-                                    'chapEvaluationList chapEvaluatedListDocId $chapEvaluatedListDocId');
-                                if (value
-                                    .docs[0]['chapEvaluationList'].isNotEmpty) {
-                                  for (int i = 0;
-                                      i <
-                                          value.docs[0]['chapEvaluationList']
-                                              .length;
-                                      i++) {
-                                    setState(() {
-                                      evaluatedChapterList.add({
-                                        "classCode": widget.classCode,
-                                        "chapterId": widget.chapterId,
-                                        "chapterName": widget.chapterName,
-                                        "isChpEvaluated": value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'],
-                                        "isPartOneEvaluated": value.docs[0]['chapEvaluationList'][i]['isPartOneEvaluated'],
-                                        "isPartTwoEvaluated": value.docs[0]['chapEvaluationList'][i]['isPartTwoEvaluated'],
-                                        "isPartThreeEvaluated": value.docs[0]['chapEvaluationList'][i]['isPartThreeEvaluated'],
-                                      });
-                                    });
-                                    if (value.docs[0]['chapEvaluationList'][i]['chapterId'] == widget.chapterId &&
-                                        value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'] == 'no') {
-                                      print('we are in chapter Evaluate loop $i and condition matched');
-                                      setState(() {
-                                        currentListIndex = i;
-                                        isChpEvaluated = value.docs[0]['chapEvaluationList'][i]['isChpEvaluated'];
-                                        isPartOneEvaluated = value.docs[0]
-                                                ['chapEvaluationList'][i]
-                                            ['isPartOneEvaluated'];
-                                        isPartTwoEvaluated = value.docs[0]
-                                                ['chapEvaluationList'][i]
-                                            ['isPartTwoEvaluated'];
-                                        isPartThreeEvaluated = value.docs[0]
-                                                ['chapEvaluationList'][i]
-                                            ['isPartThreeEvaluated'];
-                                      });
-                                      if (widget.chapterId == '1') {
-                                        print('we are in chapter 1 eva');
-                                        if (partOneBadgeCount == 4 &&
-                                            isPartOneEvaluated == 'no') {
-                                          setState(() {
-                                            isPartOneEvaluated = 'yes';
-                                            totalBadges = totalBadges + 1;
-                                          });
-                                          print(
-                                              'we are in partOne $isPartOneEvaluated $totalBadges');
-                                        } else {
-                                          if (partTwoBadgeCount == 2 &&
-                                              isPartTwoEvaluated == 'no') {
-                                            setState(() {
-                                              isPartTwoEvaluated = 'yes';
-                                              totalBadges = totalBadges + 1;
-                                            });
-                                            print(
-                                                'we are in part 2 $isPartTwoEvaluated $totalBadges');
-                                          } else {
-                                            if (partThreeBadgeCount == 2 && isPartThreeEvaluated == 'no') {
-                                              setState(() {
-                                                isPartThreeEvaluated = 'yes';
-                                                totalBadges = totalBadges + 1;
-                                              });
-                                              print(
-                                                  'we are in part 3 $isPartThreeEvaluated $totalBadges');
-                                            } else {
-                                              if (isChpEvaluated == "no" &&
-                                                  (isPartOneEvaluated == "yes" &&
-                                                      isPartTwoEvaluated ==
-                                                          "yes" &&
-                                                      isPartThreeEvaluated ==
-                                                          "yes")) {
-                                                print(
-                                                    'we are in chapter part  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
-                                                setState(() {
-                                                  isChpEvaluated == "yes";
-                                                  totalCups = totalCups + 1;
-                                                });
-                                              } else {
-                                                print(
-                                                    'Sorry Every Condition is false  $isPartThreeEvaluated $isPartThreeEvaluated $isPartTwoEvaluated $totalCups');
-                                              }
-                                            }
-                                          }
-                                        }
-                                      } else if (widget.chapterId == '2' ||
-                                          widget.chapterId == '3' ||
-                                          widget.chapterId == '4') {
-                                        print('we are in chapter 2,3,4 eva');
-                                        if (partOneBadgeCount == 2 &&
-                                            isPartOneEvaluated == 'no') {
-                                          setState(() {
-                                            isPartOneEvaluated = 'yes';
-                                            totalBadges = totalBadges + 1;
-                                          });
-                                        } else {
-                                          if (partTwoBadgeCount == 2 &&
-                                              isPartTwoEvaluated == 'no') {
-                                            setState(() {
-                                              isPartTwoEvaluated = 'yes';
-                                              totalBadges = totalBadges + 1;
-                                            });
-                                          } else {
-                                            if (partThreeBadgeCount == 2 &&
-                                                isPartThreeEvaluated == 'no') {
-                                              setState(() {
-                                                isPartThreeEvaluated = 'yes';
-                                                totalBadges = totalBadges + 1;
-                                              });
-                                            } else {
-                                              if (isChpEvaluated == "no" &&
-                                                  (isPartOneEvaluated ==
-                                                          "yes" &&
-                                                      isPartTwoEvaluated ==
-                                                          "yes" &&
-                                                      isPartThreeEvaluated ==
-                                                          "yes")) {
-                                                setState(() {
-                                                  isChpEvaluated == "yes";
-                                                  totalCups = totalCups + 1;
-                                                });
-                                              } else {
-                                                print(
-                                                    " None of the above condition is true");
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              } else {
-                                print('empty Doc');
-                              }
-                            });
-
-
-                            print('we are in getTheListAndUploadResults');
-                            setState(() {
-                              evaluatedChapterList2.clear();
-                            });
-
-                            for (int i = 0; i < evaluatedChapterList.length; i++) {
-                              if (currentListIndex == i) {
-                                setState(() {
-                                  evaluatedChapterList2.add({
-                                    "classCode": widget.classCode,
-                                    "chapterId": widget.chapterId,
-                                    "chapterName": widget.chapterName,
-                                    "isChpEvaluated": isChpEvaluated,
-                                    "isPartOneEvaluated": isPartOneEvaluated,
-                                    "isPartTwoEvaluated": isPartTwoEvaluated,
-                                    "isPartThreeEvaluated": isPartThreeEvaluated,
-                                  });
-                                });
-                              }
-                              else {
-                                setState(() {
-                                  evaluatedChapterList2.add({
-                                    "classCode": widget.classCode,
-                                    "chapterId": widget.chapterId,
-                                    "chapterName": widget.chapterName,
-                                    "isChpEvaluated": evaluatedChapterList[i]['isChpEvaluated'],
-                                    "isPartOneEvaluated": evaluatedChapterList[i]['isPartOneEvaluated'],
-                                    "isPartTwoEvaluated": evaluatedChapterList[i]['isPartTwoEvaluated'],
-                                    "isPartThreeEvaluated": evaluatedChapterList[i]
-                                    ['isParThreeEvaluated'],
-                                  });
-                                });
-                              }
-                            }
-                            if (evaluatedChapterList2.length == evaluatedChapterList.length) {
-                              FirebaseFirestore.instance
-                                  .collection('StudentChapterEvaluation')
-                                  .doc(chapEvaluatedListDocId.toString())
-                                  .set({
-                                "studentEmail": studentEmail,
-                                "studentName": studentName,
-                                "uid": studentUid,
-                                "chapEvaluationList": evaluatedChapterList2,
-                                "classCode": widget.classCode.toString(),
-                                "className": widget.classDocId.toString(),
-                                "teacherEmail": widget.teacherEmail,
-                              }).then((value) {
-                                print("StudentChapterEvaluation Done");
-
-                                FirebaseFirestore.instance
-                                    .collection("Students")
-                                    .doc(studentsTableDocId.toString())
-                                    .update({
-                                  "studentBadges": totalBadges,
-                                  "studentCups": totalCups,
-                                }).then((value) {
-                                  print(' totalBadges done dana done');
-
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                  Fluttertoast.showToast(
-                                    msg:
-                                    "Successfully evaluated ayah ${widget.currentAya + 1} of surah ${widget.surahName}",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                    gravity: ToastGravity.BOTTOM,
-                                    timeInSecForIosWeb: 4,
-                                  );
-                                  Navigator.pop(context);
-
-                                  // setState(() {
-                                  //   starLoading = false;
-                                  // });
-                                  // Navigator.of(context).pop();
-                                  // Fluttertoast.showToast(
-                                  //   msg: "Successfully Evaluated Surah ${widget.surahName}",
-                                  //   toastLength: Toast.LENGTH_SHORT,
-                                  //   gravity: ToastGravity.BOTTOM,
-                                  //   timeInSecForIosWeb: 4,
-                                  // );
-                                });
-                              });
-                            }
-                            else {
-                              print('List Length Issue Evaluation');
-
-                              setState(() {
-                                isLoading = false;
-                              });
-                              Fluttertoast.showToast(
-                                msg: "Successfully evaluated ayah ${widget.currentAya + 1} of surah ${widget.surahName}",
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 4,
-                              );
-                              Navigator.pop(context);
-
-                            }
-
-
-
-
-                            // setState(() {
-                            //   isLoading = false;
-                            // });
-                            // Fluttertoast.showToast(
-                            //   msg: "Successfully evaluated ayah ${widget.currentAya+1} of surah ${widget.surahName}",
-                            //   toastLength: Toast.LENGTH_SHORT,
-                            //   gravity: ToastGravity.BOTTOM,
-                            //   timeInSecForIosWeb: 4,
-                            // );
-                            // Navigator.pop(context);
                           });
                         });
                       } else {
@@ -1324,162 +1322,34 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                               "partNo": widget.partIndex,
                               "recordingStarted": "yes",
                               "surahCompleted":
-                                  evaluatedSurah.toString() == widget.surahAyhs
-                                      ? "yes"
-                                      : "no",
+                              evaluatedSurahCheck == "yes" && (evaluatedSurah.toString() == widget.surahAyhs)  ? "yes" :  "no",
                               "surahRecording": "1",
-                              "surahStars": "0",
+                              "surahStars": 0,
                               "surahGreenAyah": countGreen.toString(),
                               "surahVerses": surahVerses
                             },
                           ).then((value) async {
                             //print("getBadges before");
 
-                            print("getBadges start");
+                            print(' totalBadges done dana done');
+
                             setState(() {
-                              partOneBadgeCount = 0;
-                              partTwoBadgeCount = 0;
-                              partThreeBadgeCount = 0;
+                              isLoading = false;
                             });
+                            Fluttertoast.showToast(
+                              msg:
+                              "Successfully evaluated ayah ${widget.currentAya + 1} of surah ${widget.surahName}",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 4,
+                            );
+                            Navigator.pop(context);
 
-                            FirebaseFirestore.instance
-                                .collection('StudentEvaluatedSurah')
-                                .where('classCode',
-                                    isEqualTo: widget.classCode.toString())
-                                .where('studentUid', isEqualTo: studentUid)
-                                .where('chapterId', isEqualTo: widget.chapterId)
-                                .get()
-                                .then((value) {
-                              if (value.docs.isNotEmpty) {
-                                print("getBadges inside");
-                                for (int i = 0; i < value.docs.length; i++) {
-                                  if (value.docs[i]['surahCompleted']
-                                              .toString() ==
-                                          'yes' &&
-                                      value.docs[i]['partNo'] == 0) {
-                                    print(
-                                        value.docs[i]['surahName'].toString() +
-                                            ' Completed surah');
-                                    setState(() {
-                                      partOneBadgeCount = partOneBadgeCount + 1;
-                                    });
-                                  } else if (value.docs[i]['surahCompleted']
-                                              .toString() ==
-                                          'yes' &&
-                                      value.docs[i]['partNo'] == 1) {
-                                    setState(() {
-                                      partTwoBadgeCount = partTwoBadgeCount + 1;
-                                    });
-                                  } else if (value.docs[i]['surahCompleted']
-                                              .toString() ==
-                                          'yes' &&
-                                      value.docs[i]['partNo'] == 2) {
-                                    setState(() {
-                                      partThreeBadgeCount =
-                                          partThreeBadgeCount + 1;
-                                    });
-                                  }
-
-                                  if (i == value.docs.length) {
-                                    print(
-                                        "getBadges inside $i is EqualTo ${value.docs.length}");
-                                    evaluateChapters();
-                                  } else {
-                                    print(
-                                        "getBadges inside $i is not EqualTo ${value.docs.length}");
-                                  }
-                                }
-                              } else {
-                                print('doc is empty');
-                              }
-                            });
-
-                            //getBadges();
-                            //     .then((value)async {
-                            //  print("getBadges then after");
-
-                            // setState(() {
-                            //   isLoading = false;
-                            // });
-                            // Fluttertoast.showToast(
-                            //   msg: "Successfully evaluated ayah ${widget.currentAya+1} of surah ${widget.surahName}",
-                            //   toastLength: Toast.LENGTH_SHORT,
-                            //   gravity: ToastGravity.BOTTOM,
-                            //   timeInSecForIosWeb: 4,
-                            // );
-                            // Navigator.pop(context);
-                            // await evaluateChapters().then((value) async{
-                            //
-                            //   await getTheListAndUploadResults().then((value) async {
-                            //     setState(() {
-                            //       isLoading = false;
-                            //     });
-                            //     Fluttertoast.showToast(
-                            //       msg: "Successfully evaluated ayah ${widget.currentAya+1} of surah ${widget.surahName}",
-                            //       toastLength: Toast.LENGTH_SHORT,
-                            //       gravity: ToastGravity.BOTTOM,
-                            //       timeInSecForIosWeb: 4,
-                            //     );
-                            //     Navigator.pop(context);
-                            //   });
-                            //
-                            // });
-
-                            // });
-                            //getBadges();
-                            //evaluateChapters();
-
-                            // Navigator.push(
-                            //   context,
-                            //   PageRouteBuilder(
-                            //     pageBuilder: (c, a1, a2) =>
-                            //         AyahEvaluationScreen(
-                            //           studentUid: studentUid,
-                            //           studentName: studentName,
-                            //           surahNumber: widget.surahNumber,
-                            //           surahName: widget.surahName,
-                            //           surahAyhs: widget.surahAyhs,
-                            //           surahIndex: widget.surahIndex,
-                            //           way: "surah",
-                            //           teacherEmail: widget.teacherEmail,
-                            //           chapterName: widget.chapterName,
-                            //           chapterId: widget.chapterId,
-                            //           classDocId: widget.classDocId,
-                            //           classCode: widget.classCode,
-                            //           studentDocId: widget.studentDocId,
-                            //           partIndex: widget.partIndex,
-                            //           chapterIndex: widget.chapterIndex,
-                            //         ),
-                            //     transitionsBuilder: (c, anim, a2, child) =>
-                            //         FadeTransition(opacity: anim, child: child),
-                            //     transitionDuration: Duration(milliseconds: 0),
-                            //   ),
-                            // );
                           });
                         });
                       }
 
-                      // if(widget.partIndex == 0) {
-                      //   print(teacherClasseModel!.chapList![int.parse(widget.chapterId.toString())].content!.surahs![widget.partIndex].part1!.length);
-                      //       for(int i=0 ;i<teacherClasseModel!.chapList![int.parse(widget.chapterId.toString())].content!.surahs![widget.partIndex].part1!.length
-                      //       ;i++) {
-                      //         if(teacherClasseModel!.chapList![int.parse(widget.chapterId.toString())].content!.surahs![widget.partIndex].part1![i].surahName.toString() ==
-                      //             widget.surahNumber) {
-                      //
-                      //
-                      //
-                      //         }
-                      //
-                      //
-                      //
-                      //       }
-                      //
-                      //
-                      // } else if(widget.partIndex == 1) {
-                      //   print(teacherClasseModel!.chapList![int.parse(widget.chapterId.toString())].content!.surahs![widget.partIndex].part1)
-                      // } else if(widget.partIndex == 2) {
-                      //   print(teacherClasseModel!.chapList![int.parse(widget.chapterId.toString())].content!.surahs![widget.partIndex].part1)
-                      // }
+
 
                     }
                   },
