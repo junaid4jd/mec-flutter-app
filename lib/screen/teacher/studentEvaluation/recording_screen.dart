@@ -105,8 +105,10 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
   // List<SurahVerse>? surahVerses;
   @override
   void initState() {
+    print(widget.currentAya.toString() + " Current Ayah is here");
     //checkListChapLength();
-    doesSurahCompleted();
+    getStudentData();
+   // doesSurahCompleted();
     //checkListChapLength();
     setState(() {
       studentsTableDocId = "";
@@ -128,8 +130,7 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
       evaluatedSurah = 0;
     });
     //getBadges();
-    getStudentData();
-    getSurahVerses();
+
     print(widget.surahAyhs.toString() + ' This is ayah');
     setState(() {
       selectedIndexColor = '';
@@ -218,21 +219,30 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
     FirebaseFirestore.instance
         .collection("StudentEvaluatedSurah")
         .where("surahNumber", isEqualTo: widget.surahNumber)
+        .where("studentUid", isEqualTo: studentUid)
+        .where("studentDocId", isEqualTo: widget.studentDocId)
         .get()
         .then((value) {
       if (value.docs.isEmpty) {
         print("we are here value.docs.isEmpty");
+        print("we are here value.docs. ${widget.surahAyhs.toString()}");
 
         for (int i = 0; i < int.parse(widget.surahAyhs.toString()); i++) {
+          print(i.toString());
           setState(() {
             surahVerses.add({
               "verseColor": "grey",
               "evaluated": "no",
-              "verseNumber": "$i",
+              "verseNumber": i.toString(),
               "verseRecording": "1",
             });
           });
         }
+        if(surahVerses.length == int.parse(widget.surahAyhs.toString())) {
+          print("verses is here");
+          print(surahVerses.toList());
+        }
+
       } else {
         for (int i = 0; i < value.docs.length; i++) {
           if (value.docs[i]["surahVerses"].isNotEmpty) {
@@ -423,9 +433,12 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
         studentName = value["studentName"].toString();
         studentUid = value["uid"].toString();
       });
-
+      doesSurahCompleted();
       getStudentChapterDoc();
       getTheFullChapList();
+
+
+      getSurahVerses();
 
     });
   }
@@ -448,6 +461,8 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
     FirebaseFirestore.instance
         .collection("StudentEvaluatedSurah")
         .where("surahNumber", isEqualTo: widget.surahNumber)
+        .where("studentUid", isEqualTo: studentUid)
+        .where("studentDocId", isEqualTo: widget.studentDocId)
         .get()
         .then((value) {
 
@@ -457,7 +472,10 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
               print("Already this ayah surah completed");
               setState(() {
                 evaluatedSurahCheck = "yes";
+                evaluatedSurah = int.parse(widget.surahAyhs);
               });
+
+              print("evaluatedSurah = int.parse(widget.surahAyhs);");
 
             }
             else {
@@ -474,6 +492,8 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                   setState(() {
                     evaluatedSurah = evaluatedSurah + 1;
                   });
+                  print(" evaluated verses count ${evaluatedSurah}");
+
                   //  print("In Condition evaluated $evaluatedSurah == ${widget.surahAyhs}");
                   if(evaluatedSurah.toString() == widget.surahAyhs) {
                     print(" evaluated $evaluatedSurah == ${widget.surahAyhs} True");
@@ -482,9 +502,14 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                       evaluatedSurahCheck = "yes";
                     });
                   }
+                } else {
+                  print("none of the verse evaluated yet");
                 }
               }
             }
+          }
+          else {
+            print("value is empty");
           }
 
 
@@ -503,6 +528,8 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
       });
       print(countGreen.toString() + "one more  Green added");
     }
+    print("Before evaluation");
+    print(surahVerses.toList()  );
 
     setState(() {
       surahVerses[widget.currentAya] = {
@@ -513,40 +540,43 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
       };
     });
 
+    print("after evaluation");
+    print(surahVerses.toList()  );
 
 
 
 
 
-    if(evaluatedSurahCheck == "yes")
-    {
-
-      print("Already this ayah surah completed");
-
-    }
-    else {
-
-      print("This ayah surah not completed");
-
-      for (int i = 0; i < surahVerses.length; i++) {
-        if (surahVerses[i]["evaluated"] == "yes") {
-          setState(() {
-            evaluatedSurah = evaluatedSurah + 1;
-          });
-
-          if(evaluatedSurah.toString() == widget.surahAyhs) {
-            print(" evaluated $evaluatedSurah == ${widget.surahAyhs} True");
-            //print(" ${evaluatedSurah == widget.surahAyhs} now this ayah surah completed");
-            setState(() {
-              evaluatedSurahCheck = "yes";
-            });
-          }
-
-        }
-      }
-
-
-    }
+    //
+    // if(evaluatedSurahCheck == "yes")
+    // {
+    //
+    //   print("Already this ayah surah completed");
+    //
+    // }
+    // else {
+    //
+    //   print("This ayah surah not completed");
+    //
+    //   for (int i = 0; i < surahVerses.length; i++) {
+    //     if (surahVerses[i]["evaluated"] == "yes") {
+    //       setState(() {
+    //         evaluatedSurah = evaluatedSurah + 1;
+    //       });
+    //
+    //       if(evaluatedSurah.toString() == widget.surahAyhs) {
+    //         print(" evaluated $evaluatedSurah == ${widget.surahAyhs} True");
+    //         //print(" ${evaluatedSurah == widget.surahAyhs} now this ayah surah completed");
+    //         setState(() {
+    //           evaluatedSurahCheck = "yes";
+    //         });
+    //       }
+    //
+    //     }
+    //   }
+    //
+    //
+    // }
 
 
 
@@ -705,7 +735,7 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
 
 
               if (widget.chapterId == '1') {
-                print('we are in chapter 1 eva');
+                print('we are in chapter 1 eva $partOneBadgeCount $isPartOneEvaluated');
 
                 if (partOneBadgeCount == 4 && isPartOneEvaluated == 'no') {
                   checkPartOneChapOne();
@@ -1178,7 +1208,11 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                       snapshot.docs.forEach((element) {
                         print('user data');
                         if (element['surahNumber'] ==
-                            widget.surahNumber.toString()) {
+                            widget.surahNumber.toString()
+                        && element['studentDocId'] == widget.studentDocId
+                        && element['studentUid'] == studentUid
+
+                        ) {
                           print('yes is here ');
                           //   print(element['age']);
                           setState(() {
@@ -1210,7 +1244,9 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                               "chapterIndex": widget.chapterIndex,
                               "partNo": widget.partIndex,
                               "surahCompleted":
-                              evaluatedSurahCheck == "yes" && (evaluatedSurah.toString() == widget.surahAyhs)  ? "yes" :  "no",
+                              evaluatedSurahCheck == "yes" && (evaluatedSurah.toString() == widget.surahAyhs)  ? "yes" :
+                              evaluatedSurah == int.parse(widget.surahAyhs)-1 ? "yes" :
+                              "no",
                               "surahRecording": "1",
                               "surahStars": surahStars.toInt(),
                               "surahGreenAyah": countGreen.toString(),
@@ -1229,6 +1265,7 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                                 .where('classCode',
                                     isEqualTo: widget.classCode.toString())
                                 .where('studentUid', isEqualTo: studentUid)
+                                .where('studentDocId', isEqualTo: widget.studentDocId)
                                 .where('chapterId', isEqualTo: widget.chapterId)
                                 .get()
                                 .then((value) {
@@ -1300,7 +1337,10 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                             });
                           });
                         });
-                      } else {
+                      }
+                      else {
+
+
                         await getFinalData().whenComplete(() {
                           print(countGreen.toString() + " Final Count green");
 
@@ -1322,7 +1362,9 @@ class _SimpleRecorderState extends State<SimpleRecorder> {
                               "partNo": widget.partIndex,
                               "recordingStarted": "yes",
                               "surahCompleted":
-                              evaluatedSurahCheck == "yes" && (evaluatedSurah.toString() == widget.surahAyhs)  ? "yes" :  "no",
+                              evaluatedSurahCheck == "yes" && (evaluatedSurah.toString() == widget.surahAyhs)  ? "yes" :
+                              evaluatedSurah == int.parse(widget.surahAyhs)-1 ? "yes" :
+                              "no",
                               "surahRecording": "1",
                               "surahStars": 0,
                               "surahGreenAyah": countGreen.toString(),

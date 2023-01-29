@@ -14,6 +14,7 @@ import 'package:mec/screen/teacher/teacher_home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
+  // Firebase Connection
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isIOS) {
     await Firebase.initializeApp(
@@ -26,6 +27,7 @@ void main() async {
   else {
     await Firebase.initializeApp();
   }
+  // Firebase Connection
   runApp(const MyApp());
 }
 
@@ -73,7 +75,7 @@ class _MyAppState extends State<MyApp> {
           //color set to purple or set your own color
         )
     );
-
+ // This MyApp class is responsible for loading the first screen to view based on usertype.
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,

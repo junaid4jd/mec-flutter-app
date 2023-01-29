@@ -37,11 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     // TODO: implement initState
     if(widget.userType.toString() == 'Teacher') {
+      // if you do not want to fill my teacher credentials automatically then comment these below four lines
       setState(() {
         _emailControoler.text = 'georgehenrry@gmail.com';
         _passwordControoler.text = '12345678';
       });
     } else {
+      // if you do not want to fill my student credentials automatically then comment these below four lines
       setState(() {
         _emailControoler.text = 'abdul@gmail.com';
         _passwordControoler.text = '12345678';

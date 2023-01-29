@@ -16,7 +16,7 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 class _SplashScreenState extends State<SplashScreen> {
-  final splashDelay = 5;
+  final splashDelay = 5; // delay for 5 seconds
 
   @override
   void initState() {
@@ -36,7 +36,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void dispose() {
     // TODO: implement dispose
-
     super.dispose();
   }
 

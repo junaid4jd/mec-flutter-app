@@ -248,7 +248,7 @@ class _AyahEvaluationScreenState extends State<AyahEvaluationScreen> {
     print(" we are here in getStudentEvaluatedData ${widget.surahNumber} ${widget.studentUid} ${widget.surahName}");
 
     FirebaseFirestore.instance.collection("StudentEvaluatedSurah").where("studentUid", isEqualTo: widget.studentUid)
-        .where("surahNumber", isEqualTo: widget.surahNumber).where("surahName", isEqualTo: widget.surahName)
+        .where("surahNumber", isEqualTo: widget.surahNumber).where("surahName", isEqualTo: widget.surahName).where("studentDocId", isEqualTo: widget.studentDocId)
         .where("classCode", isEqualTo: widget.classCode).get().then((value) {
 
 
@@ -260,6 +260,9 @@ class _AyahEvaluationScreenState extends State<AyahEvaluationScreen> {
               isSurahCompleted = value.docs[0]["surahCompleted"];
             });
             for(int i=0; i<value.docs[0]["surahVerses"].length ; i++) {
+
+            //  print()
+
               setState(() {
                 totalVerses = value.docs[0]["surahVerses"].length;
                 surahStar = double.parse(value.docs[0]["surahStars"].toString());

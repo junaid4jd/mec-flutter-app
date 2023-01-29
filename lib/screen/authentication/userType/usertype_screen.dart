@@ -27,9 +27,11 @@ class _UserTypeState extends State<UserType> {
                 child: Image.asset('assets/images/quran.png', fit: BoxFit.scaleDown,),
               ),
             ),
+
             SizedBox(
               height: size.height*0.07,
             ),
+
           SizedBox(
             height: size.height*0.06,
             width: size.width*0.85,
